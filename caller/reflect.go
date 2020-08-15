@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-// Call calls function fn with given parameters.
+// Call calls function fn with given parameters. It panics in case of error, use SafeCall to avoid panic.
 func Call(fn interface{}, params ...interface{}) []interface{} {
 	fnR := reflect.ValueOf(fn)
 
