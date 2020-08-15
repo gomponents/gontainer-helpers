@@ -5,28 +5,6 @@ import (
 	"reflect"
 )
 
-type reflectType struct {
-	reflect.Type
-}
-
-// inVariadicAware works almost same as reflect.Type.In,
-// but it returns t.In(i).Elem() for t.isVariadic() && i >= t.NumIn().
-func (t reflectType) inVariadicAware(i int) reflect.Type {
-	last := t.NumIn() - 1
-	if i > last {
-		i = last
-	}
-	r := t.In(i)
-	if t.IsVariadic() && i == last {
-		r = r.Elem()
-	}
-	return r
-}
-
-func reflectTypeOf(i interface{}) reflectType {
-	return reflectType{reflect.TypeOf(i)}
-}
-
 // Call calls function fn with given parameters.
 func Call(fn interface{}, params ...interface{}) []interface{} {
 	fnR := reflect.ValueOf(fn)
@@ -93,4 +71,26 @@ func CallProvider(provider interface{}, params ...interface{}) (interface{}, err
 	}
 
 	return r, e
+}
+
+type reflectType struct {
+	reflect.Type
+}
+
+// inVariadicAware works almost same as reflect.Type.In,
+// but it returns t.In(i).Elem() for t.isVariadic() && i >= t.NumIn().
+func (t reflectType) inVariadicAware(i int) reflect.Type {
+	last := t.NumIn() - 1
+	if i > last {
+		i = last
+	}
+	r := t.In(i)
+	if t.IsVariadic() && i == last {
+		r = r.Elem()
+	}
+	return r
+}
+
+func reflectTypeOf(i interface{}) reflectType {
+	return reflectType{reflect.TypeOf(i)}
 }
