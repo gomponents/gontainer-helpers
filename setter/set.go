@@ -47,8 +47,8 @@ func Set(strct interface{}, field string, val interface{}) error {
 
 	// removes prepending duplicate Ptr elements
 	// e.g.
-	// s := &struct{ val int }{} // chain == {Ptr, Ptr, Struct}
-	// Set(&s...
+	// s := &struct{ val int }{}
+	// Set(&s... // chain == {Ptr, Ptr, Struct}
 	reflectVal := reflect.ValueOf(strct)
 	for len(chain) >= 2 && chain[0] == reflect.Ptr && chain[1] == reflect.Ptr {
 		reflectVal = reflectVal.Elem()
