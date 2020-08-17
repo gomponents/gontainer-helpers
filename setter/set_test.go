@@ -1,8 +1,6 @@
 package setter
 
 import (
-	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +21,24 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, Set(&p, "color", "brown"))
 		assert.Equal(t, "brown", p.color)
 	})
+	t.Run("anonymous ***struct", func(t *testing.T) {
+		p := &struct {
+			color string
+		}{}
+		p2 := &p
+		p3 := &p2
+		assert.NoError(t, Set(&p3, "color", "brown"))
+		assert.Equal(t, "brown", p.color)
+	})
+	t.Run("anonymous ***struct", func(t *testing.T) {
+		p := &struct {
+			color string
+		}{}
+		p2 := &p
+		var p3 interface{} = &p2
+		assert.NoError(t, Set(&p3, "color", "brown"))
+		assert.Equal(t, "brown", p.color)
+	})
 	t.Run("struct", func(t *testing.T) {
 		p := person{}
 		assert.NoError(t, Set(&p, "Name", "Jane"))
@@ -40,6 +56,11 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, Set(&p, "Name", "Mary Jane"))
 		assert.NoError(t, Set(&p, "age", 45))
 		assert.Equal(t, &person{Name: "Mary Jane", age: 45}, p)
+	})
+	t.Run("var a interface{} := struct{}", func(t *testing.T) {
+		var p interface{} = person{}
+		assert.NoError(t, Set(&p, "Name", "Jane"))
+		assert.Equal(t, person{Name: "Jane"}, p)
 	})
 	t.Run("unexported type of field", func(t *testing.T) {
 		p := person{}
@@ -82,21 +103,6 @@ func TestSet(t *testing.T) {
 		})
 	})
 	t.Run("Given errors", func(t *testing.T) {
-		t.Run("var a interface{} = struct{}", func(t *testing.T) {
-			var p interface{} = person{}
-			err := Set(&p, "Name", "Mary Jane")
-			assert.Error(t, err)
-			regexpParts := []string{
-				"invalid arg (given `var arg interface{} := ",
-				"{}`, replace by `var arg interface{} := &",
-				"{}`)",
-			}
-			for i, s := range regexpParts {
-				regexpParts[i] = regexp.QuoteMeta(s)
-			}
-			reg := "^" + strings.Join(regexpParts, ".*") + "$"
-			assert.Regexp(t, reg, err.Error())
-		})
 		t.Run("Field does not exist", func(t *testing.T) {
 			p := person{}
 			err := Set(&p, "FirstName", "Mary")
@@ -107,7 +113,7 @@ func TestSet(t *testing.T) {
 			p := 5
 			err := Set(&p, "FirstName", "Mary")
 			assert.Error(t, err)
-			assert.Equal(t, "invalid pointer dest: expects `struct`, `int` given", err.Error())
+			assert.Equal(t, "invalid parameter, setter.Set expects pointer to struct, given ptr.int", err.Error())
 		})
 		t.Run("Invalid type of value", func(t *testing.T) {
 			p := person{}
