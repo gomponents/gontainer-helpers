@@ -74,7 +74,7 @@ func Set(strct interface{}, field string, val interface{}) error {
 			val,
 		)
 
-	// var s interface{} = &struct{ val int }{}
+	// var s interface{} = struct{ val int }{}
 	// Set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
 		v := reflectVal.Elem()
