@@ -13,7 +13,7 @@ type BaseTaggedContainer struct {
 func NewBaseTaggedContainer(container Container) *BaseTaggedContainer {
 	return &BaseTaggedContainer{
 		container: container,
-		mapping:   make(map[string]map[string]int),
+		mapping:   make(map[string]map[string]int), // mapping[tag][serviceID] = priority
 	}
 }
 
