@@ -298,3 +298,12 @@ func (p person) withName(n string) person {
 func (p *person) setName(n string) {
 	p.name = n
 }
+
+func (p *person) Foo() person {
+	return *p
+}
+
+func TestMustCallWitherByName(t *testing.T) {
+	p := person{}
+	MustCallWitherByName(p, "Foo")
+}
