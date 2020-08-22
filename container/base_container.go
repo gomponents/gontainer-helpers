@@ -3,6 +3,7 @@ package container
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 type Provider = func() (interface{}, error)
@@ -19,7 +20,12 @@ type metaServiceDefinition struct {
 }
 
 type BaseContainer struct {
-	services map[string]metaServiceDefinition
+	services     map[string]metaServiceDefinition
+	circularDeps *circularDeps
+}
+
+type finalContainerErr struct {
+	error
 }
 
 func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
@@ -32,7 +38,10 @@ func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
 		}
 	}
 
-	return &BaseContainer{services: meta}
+	return &BaseContainer{
+		services:     meta,
+		circularDeps: newCircularDeps(),
+	}
 }
 
 // Register registers new service, returns error in when service already exists
@@ -59,6 +68,14 @@ func (b BaseContainer) Override(id string, s ServiceDefinition) {
 }
 
 func (b BaseContainer) Get(id string) (interface{}, error) {
+	defer b.circularDeps.stop()
+	if deps := b.circularDeps.start(id); deps != nil {
+		return nil, finalContainerErr{fmt.Errorf(
+			"circular dependency: %s",
+			strings.Join(deps, " -> "),
+		)}
+	}
+
 	if !b.Has(id) {
 		return nil, fmt.Errorf("service `%s` does not exist", id)
 	}
@@ -71,6 +88,9 @@ func (b BaseContainer) Get(id string) (interface{}, error) {
 	service, err := serviceDef.definition.Provider()
 
 	if err != nil {
+		if finalErr, ok := err.(finalContainerErr); ok {
+			return nil, finalErr
+		}
 		return nil, fmt.Errorf("cannot create service `%s`: %s", id, err.Error())
 	}
 
