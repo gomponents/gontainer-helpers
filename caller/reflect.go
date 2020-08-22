@@ -5,42 +5,49 @@ import (
 	"reflect"
 )
 
-// Call calls function fn with given parameters. It panics in case of error, use SafeCall to avoid panic.
-func Call(fn interface{}, params ...interface{}) []interface{} {
-	fnR := reflect.ValueOf(fn)
-
-	if reflect.ValueOf(fn).Kind() != reflect.Func {
-		panic(fmt.Sprintf("func Call expects func, %T given", fn))
+func call(fn reflect.Value, params ...interface{}) []interface{} {
+	if fn.Kind() != reflect.Func {
+		panic(fmt.Sprintf("expects %s, %T given", reflect.Func.String(), fn.Type().String()))
 	}
 
-	fnType := reflectTypeOf(fn)
+	fnType := reflectType{fn.Type()}
 
 	if len(params) > fnType.NumIn() && !fnType.IsVariadic() {
-		panic("Call with too many input arguments")
+		panic("too many input arguments")
 	}
 
 	paramsRef := make([]reflect.Value, len(params))
 	for i, p := range params {
-		paramsRef[i] = reflect.ValueOf(p).Convert(fnType.inVariadicAware(i))
+		vp := reflect.ValueOf(p)
+		convertTo := fnType.inVariadicAware(i)
+		if !vp.Type().ConvertibleTo(convertTo) {
+			panic(fmt.Sprintf("arg%d: cannot cast `%s` to `%s`", i, vp.Kind().String(), convertTo.Kind().String()))
+		}
+		paramsRef[i] = vp.Convert(convertTo)
 	}
 
 	var result []interface{}
-	for _, v := range fnR.Call(paramsRef) {
+	for _, v := range fn.Call(paramsRef) {
 		result = append(result, v.Interface())
 	}
 
 	return result
 }
 
-// SafeCall calls function Call and returns error in case of panic.
-func SafeCall(fn interface{}, params ...interface{}) (result []interface{}, err error) {
+// MustCall calls function fn with given parameters. It panics in case of error, use Call to avoid panic.
+func MustCall(fn interface{}, params ...interface{}) []interface{} {
+	return call(reflect.ValueOf(fn), params...)
+}
+
+// Call calls function MustCall and returns error in case of panic.
+func Call(fn interface{}, params ...interface{}) (result []interface{}, err error) {
 	defer func() {
 		if p := recover(); p != nil {
 			err = fmt.Errorf("%s", p)
 		}
 	}()
 
-	return Call(fn, params...), nil
+	return MustCall(fn, params...), nil
 }
 
 var (
@@ -51,6 +58,9 @@ var (
 // function must return 1 or 2 values, second value must be error if exists.
 func CallProvider(provider interface{}, params ...interface{}) (interface{}, error) {
 	t := reflect.TypeOf(provider)
+	if t.Kind() != reflect.Func {
+		return nil, fmt.Errorf("provider must be kind of %s, %s given", reflect.Func.String(), t.Kind().String())
+	}
 	if t.NumOut() == 0 || t.NumOut() > 2 {
 		return nil, fmt.Errorf("provider must return 1 or 2 values, given function returns %d values", t.NumOut())
 	}
@@ -58,7 +68,7 @@ func CallProvider(provider interface{}, params ...interface{}) (interface{}, err
 		return nil, fmt.Errorf("second value returned by provider must implements error interface")
 	}
 
-	results, err := SafeCall(provider, params...)
+	results, err := Call(provider, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +81,36 @@ func CallProvider(provider interface{}, params ...interface{}) (interface{}, err
 	}
 
 	return r, e
+}
+
+func MustCallWitherByName(object interface{}, wither string, params ...interface{}) interface{} {
+	val := reflect.ValueOf(object)
+	for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
+
+	fn := val.MethodByName(wither)
+
+	if !fn.IsValid() {
+		panic(fmt.Sprintf("invalid wither `%T`.`%s`", object, wither))
+	}
+
+	t := fn.Type()
+
+	if t.NumOut() != 1 {
+		panic(fmt.Sprintf("wither must return 1 value, given function returns %d values", t.NumOut()))
+	}
+
+	return call(fn, params...)[0]
+}
+
+func CallWitherByName(object interface{}, wither string, params ...interface{}) (result interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%s", r)
+		}
+	}()
+	return MustCallWitherByName(object, wither, params...), nil
 }
 
 type reflectType struct {
@@ -89,8 +129,4 @@ func (t reflectType) inVariadicAware(i int) reflect.Type {
 		r = r.Elem()
 	}
 	return r
-}
-
-func reflectTypeOf(i interface{}) reflectType {
-	return reflectType{reflect.TypeOf(i)}
 }

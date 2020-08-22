@@ -8,7 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCall(t *testing.T) {
+func TestMustCall(t *testing.T) {
+	t.Run("Given method", func(t *testing.T) {
+		p := person{}
+		assert.Equal(t, "", p.name)
+		MustCall(p.setName, "Jane")
+		assert.Equal(t, "Jane", p.name)
+	})
+
 	t.Run("Given invalid functions", func(t *testing.T) {
 		scenarios := []struct {
 			fn interface{}
@@ -23,9 +30,9 @@ func TestCall(t *testing.T) {
 				defer func() {
 					v := recover()
 					assert.NotNil(t, v)
-					assert.Regexp(t, "^func Call expects func, .* given$", v)
+					assert.Regexp(t, "^expects func, .* given$", v)
 				}()
-				Call(s.fn)
+				MustCall(s.fn)
 			})
 		}
 	})
@@ -49,9 +56,9 @@ func TestCall(t *testing.T) {
 				defer func() {
 					v := recover()
 					assert.NotNil(t, v)
-					assert.Equal(t, "Call with too many input arguments", v)
+					assert.Equal(t, "too many input arguments", v)
 				}()
-				Call(s.fn, s.args...)
+				MustCall(s.fn, s.args...)
 			})
 		}
 	})
@@ -92,16 +99,16 @@ func TestCall(t *testing.T) {
 				assert.Equal(
 					t,
 					s.expected,
-					Call(s.fn, s.args...),
+					MustCall(s.fn, s.args...),
 				)
 			})
 		}
 	})
 }
 
-func TestSafeCall(t *testing.T) {
+func TestCall(t *testing.T) {
 	t.Run("Given scenario", func(t *testing.T) {
-		r, err := SafeCall(fmt.Sprintf, "%s %s", "hello", "world")
+		r, err := Call(fmt.Sprintf, "%s %s", "hello", "world")
 		assert.NoError(t, err)
 		assert.Equal(
 			t,
@@ -110,7 +117,7 @@ func TestSafeCall(t *testing.T) {
 		)
 	})
 	t.Run("Given error", func(t *testing.T) {
-		r, err := SafeCall(fmt.Sprintf)
+		r, err := Call(fmt.Sprintf)
 		assert.Error(t, err)
 		assert.Nil(t, r)
 	})
@@ -185,7 +192,7 @@ func TestCallProvider(t *testing.T) {
 					return nil
 				},
 				params: []interface{}{1, 2, 3},
-				err:    "Call with too many input arguments",
+				err:    "MustCall with too many input arguments",
 			},
 		}
 
@@ -193,9 +200,101 @@ func TestCallProvider(t *testing.T) {
 			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
 				r, err := CallProvider(s.provider, s.params...)
 				assert.Nil(t, r)
-				assert.Error(t, err)
-				assert.Equal(t, s.err, err.Error())
+				assert.EqualError(t, err, s.err)
 			})
 		}
 	})
+
+	t.Run("Given invalid provider", func(t *testing.T) {
+		_, err := CallProvider(5)
+		assert.EqualError(t, err, "CallProvider expects func, int given")
+	})
+}
+
+func TestCallWitherByName(t *testing.T) {
+	t.Run("Given scenarios", func(t *testing.T) {
+		scenarios := []struct {
+			object interface{}
+			wither string
+			params []interface{}
+			output interface{}
+		}{
+			{
+				object: make(ints, 0),
+				wither: "Append",
+				params: []interface{}{5},
+				output: ints{5},
+			},
+			{
+				object: person{name: "Mary"},
+				wither: "WithName",
+				params: []interface{}{"Jane"},
+				output: person{name: "Jane"},
+			},
+		}
+
+		for i, s := range scenarios {
+			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+				result, err := CallWitherByName(s.object, s.wither, s.params...)
+				assert.NoError(t, err)
+				assert.Equal(t, s.output, result)
+			})
+		}
+	})
+
+	t.Run("Given errors", func(t *testing.T) {
+		scenarios := []struct {
+			object interface{}
+			wither string
+			params []interface{}
+			error  string
+		}{
+			{
+				object: person{},
+				wither: "withName",
+				params: nil,
+				error:  "invalid wither `caller.person`.`withName`",
+			},
+			{
+				object: person{},
+				wither: "Clone",
+				params: nil,
+				error:  "wither must return 1 value, given function returns 2 values",
+			},
+		}
+
+		for i, s := range scenarios {
+			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+				o, err := CallWitherByName(s.object, s.wither, s.params...)
+				assert.Nil(t, o)
+				assert.EqualError(t, err, s.error)
+			})
+		}
+	})
+}
+
+type ints []int
+
+func (i ints) Append(v int) ints {
+	return append(i, v)
+}
+
+type person struct {
+	name string
+}
+
+func (p person) Clone() (person, error) {
+	return p, nil
+}
+
+func (p person) WithName(n string) person {
+	return person{name: n}
+}
+
+func (p person) withName(n string) person {
+	return person{name: n}
+}
+
+func (p *person) setName(n string) {
+	p.name = n
 }

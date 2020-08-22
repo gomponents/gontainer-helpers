@@ -107,9 +107,7 @@ func TestExport(t *testing.T) {
 			error: expectedErr,
 		}
 		_, err := Export(123)
-		assert.Error(t, err)
 		assert.EqualError(t, err, expectedErr.Error())
-
 	})
 }
 
@@ -144,7 +142,6 @@ func TestToString(t *testing.T) {
 
 				if s.error != "" {
 					assert.Empty(t, result)
-					assert.Error(t, err)
 					assert.EqualError(t, err, s.error)
 					return
 				}
