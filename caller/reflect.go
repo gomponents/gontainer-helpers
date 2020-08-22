@@ -83,19 +83,28 @@ func CallProvider(provider interface{}, params ...interface{}) (interface{}, err
 	return r, e
 }
 
-func MustCallByName(object interface{}, wither string, params ...interface{}) []interface{} {
+func MustCallByName(object interface{}, method string, params ...interface{}) []interface{} {
 	val := reflect.ValueOf(object)
-	fn := val.MethodByName(wither)
+	fn := val.MethodByName(method)
 	for !fn.IsValid() && (val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface) {
 		val = val.Elem()
-		fn = val.MethodByName(wither)
+		fn = val.MethodByName(method)
 	}
 
 	if !fn.IsValid() {
-		panic(fmt.Sprintf("invalid func `%T`.`%s`", object, wither))
+		panic(fmt.Sprintf("invalid func `%T`.`%s`", object, method))
 	}
 
 	return call(fn, params...)
+}
+
+func CallByName(object interface{}, method string, params ...interface{}) (result []interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%s", r)
+		}
+	}()
+	return MustCallByName(object, method, params...), nil
 }
 
 func MustCallWitherByName(object interface{}, wither string, params ...interface{}) interface{} {
