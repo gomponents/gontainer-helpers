@@ -2,6 +2,7 @@ package container
 
 import (
 	"fmt"
+	"sort"
 )
 
 type Provider = func() (interface{}, error)
@@ -95,4 +96,13 @@ func (b BaseContainer) MustGet(id string) interface{} {
 func (b BaseContainer) Has(id string) bool {
 	_, ok := b.services[id]
 	return ok
+}
+
+func (b BaseContainer) GetAllServiceIDs() []string {
+	r := make([]string, 0)
+	for n, _ := range b.services {
+		r = append(r, n)
+	}
+	sort.Strings(r)
+	return r
 }

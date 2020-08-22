@@ -24,7 +24,7 @@ func NewBaseParamContainer(providers map[string]ParamProvider) *BaseParamContain
 func (b BaseParamContainer) GetParam(id string) (val interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("param `%s`: %s", id, r)
+			err = fmt.Errorf("parameter `%s`: %s", id, r)
 		}
 	}()
 
