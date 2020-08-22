@@ -16,6 +16,17 @@ func TestMustCall(t *testing.T) {
 		assert.Equal(t, "Jane", p.name)
 	})
 
+	t.Run("Convert []interface{} to []type", func(t *testing.T) {
+		result := MustCall(
+			func(input []int) []int {
+				return input
+			},
+			[]interface{}{1, 2, 3},
+		)
+		assert.Len(t, result, 1)
+		assert.Equal(t, []int{1, 2, 3}, result[0])
+	})
+
 	t.Run("Given invalid functions", func(t *testing.T) {
 		scenarios := []struct {
 			fn interface{}
@@ -35,6 +46,14 @@ func TestMustCall(t *testing.T) {
 				MustCall(s.fn)
 			})
 		}
+	})
+
+	t.Run("Given invalid argument", func(t *testing.T) {
+		defer func() {
+			assert.Equal(t, "arg0: cannot cast `struct {}` to `[]int`", fmt.Sprintf("%s", recover()))
+		}()
+
+		MustCall(func([]int) {}, struct{}{})
 	})
 
 	t.Run("Given too many arguments", func(t *testing.T) {

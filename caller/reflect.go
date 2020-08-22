@@ -5,6 +5,24 @@ import (
 	"reflect"
 )
 
+func convertSliceInterface(from reflect.Value, to reflect.Type) (reflect.Value, bool) {
+	if from.Kind() != reflect.Slice || from.Type().Elem().Kind() != reflect.Interface || to.Kind() != reflect.Slice {
+		return reflect.Value{}, false
+	}
+	cp := reflect.MakeSlice(to, 0, 0)
+	for i := 0; i < from.Len(); i++ {
+		item := from.Index(i)
+		for item.Kind() == reflect.Interface {
+			item = item.Elem()
+		}
+		if !item.Type().ConvertibleTo(to.Elem()) {
+			return reflect.Value{}, false
+		}
+		cp = reflect.Append(cp, item.Convert(to.Elem()))
+	}
+	return cp, true
+}
+
 func call(fn reflect.Value, params ...interface{}) []interface{} {
 	if fn.Kind() != reflect.Func {
 		panic(fmt.Sprintf("expects %s, %T given", reflect.Func.String(), fn.Type().String()))
@@ -21,7 +39,12 @@ func call(fn reflect.Value, params ...interface{}) []interface{} {
 		vp := reflect.ValueOf(p)
 		convertTo := fnType.inVariadicAware(i)
 		if !vp.Type().ConvertibleTo(convertTo) {
-			panic(fmt.Sprintf("arg%d: cannot cast `%s` to `%s`", i, vp.Kind().String(), convertTo.Kind().String()))
+			// converts []interface{} to []type whenever it is possible
+			cp, ok := convertSliceInterface(vp, convertTo)
+			if !ok {
+				panic(fmt.Sprintf("arg%d: cannot cast `%s` to `%s`", i, vp.Type().String(), convertTo.String()))
+			}
+			vp = cp
 		}
 		paramsRef[i] = vp.Convert(convertTo)
 	}
