@@ -175,10 +175,17 @@ func TestMustCall(t *testing.T) {
 				input:  []byte("hello"),
 				output: "hello",
 			},
-			"string to int": {
+			"string to int": { // cannot convert string to int
 				fn:    func(int) {},
 				input: "5",
 				error: "arg0: cannot cast `string` to `int`",
+			},
+			"int to string": { // but reverse conversion is possible, isn't worth to unify this behavior?
+				fn: func(v string) string {
+					return v
+				},
+				input:  5,
+				output: "\x05",
 			},
 		}
 
