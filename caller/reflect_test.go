@@ -131,9 +131,7 @@ func TestMustCall(t *testing.T) {
 				output: []int{1, 2, 3},
 			},
 			"[]interface{} to []type (incorrect)": {
-				fn: func(v []int) []int {
-					return v
-				},
+				fn:    func([]int) {},
 				input: []struct{}{},
 				error: "arg0: cannot cast `[]struct {}` to `[]int`",
 			},
@@ -145,12 +143,12 @@ func TestMustCall(t *testing.T) {
 				output: 3,
 			},
 			"*float64 to *int": {
-				fn:    func(v *int) {},
+				fn:    func(*int) {},
 				input: &float64Val,
 				error: "arg0: cannot cast `*float64` to `*int`",
 			},
 			"*float64 to *float32": {
-				fn:    func(v *float32) {},
+				fn:    func(*float32) {},
 				input: &float64Val,
 				error: "arg0: cannot cast `*float64` to `*float32`",
 			},
