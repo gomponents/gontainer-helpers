@@ -211,7 +211,7 @@ func TestCallProvider(t *testing.T) {
 					return nil
 				},
 				params: []interface{}{1, 2, 3},
-				err:    "MustCall with too many input arguments",
+				err:    "too many input arguments",
 			},
 		}
 
@@ -226,7 +226,7 @@ func TestCallProvider(t *testing.T) {
 
 	t.Run("Given invalid provider", func(t *testing.T) {
 		_, err := CallProvider(5)
-		assert.EqualError(t, err, "CallProvider expects func, int given")
+		assert.EqualError(t, err, "provider must be kind of func, int given")
 	})
 }
 
@@ -320,9 +320,4 @@ func (p *person) setName(n string) {
 
 func (p *person) Foo() person {
 	return *p
-}
-
-func TestMustCallWitherByName(t *testing.T) {
-	p := person{}
-	MustCallWitherByName(p, "Foo")
 }
