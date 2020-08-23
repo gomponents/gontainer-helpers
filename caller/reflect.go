@@ -3,6 +3,8 @@ package caller
 import (
 	"fmt"
 	"reflect"
+
+	ref "github.com/gomponents/gontainer-helpers/reflect"
 )
 
 func convertSliceInterface(from reflect.Value, to reflect.Type) (reflect.Value, bool) {
@@ -38,15 +40,11 @@ func call(fn reflect.Value, params ...interface{}) []interface{} {
 	for i, p := range params {
 		vp := reflect.ValueOf(p)
 		convertTo := fnType.inVariadicAware(i)
-		if !vp.Type().ConvertibleTo(convertTo) {
-			// converts []interface{} to []type whenever it is possible
-			cp, ok := convertSliceInterface(vp, convertTo)
-			if !ok {
-				panic(fmt.Sprintf("arg%d: cannot cast `%s` to `%s`", i, vp.Type().String(), convertTo.String()))
-			}
-			vp = cp
+		cp, ok := ref.Convert(vp, convertTo)
+		if !ok {
+			panic(fmt.Sprintf("arg%d: cannot cast `%s` to `%s`", i, vp.Type().String(), convertTo.String()))
 		}
-		paramsRef[i] = vp.Convert(convertTo)
+		paramsRef[i] = cp
 	}
 
 	var result []interface{}

@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"unsafe"
+
+	ref "github.com/gomponents/gontainer-helpers/reflect"
 )
 
 type kindChain []reflect.Kind
@@ -20,10 +22,13 @@ func set(strct reflect.Value, field string, val interface{}) error {
 	} else {
 		v = reflect.ValueOf(val)
 	}
-	if !v.Type().ConvertibleTo(f.Type()) {
+
+	cp, ok := ref.Convert(v, f.Type())
+	if !ok {
 		return fmt.Errorf("cannot cast `%s` to `%s`", v.Type().String(), f.Type().String())
 	}
-	v = v.Convert(f.Type())
+	v = cp
+
 	if !f.CanSet() { // handle unexported fields
 		f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 	}

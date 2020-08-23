@@ -68,6 +68,18 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, Set(&p, "wallet", wallet{amount: 400}))
 		assert.Equal(t, wallet{amount: 400}, p.wallet)
 	})
+	t.Run("convert []interface{} to []type", func(t *testing.T) {
+		s := storage{}
+		assert.NoError(
+			t,
+			Set(&s, "wallets", []interface{}{wallet{100}, wallet{200}}),
+		)
+		assert.Equal(
+			t,
+			[]wallet{{100}, {200}},
+			s.wallets,
+		)
+	})
 	t.Run("zero values (val = nil)", func(t *testing.T) {
 		t.Run("interface{}", func(t *testing.T) {
 			p := struct {
@@ -149,4 +161,8 @@ type person struct {
 
 type wallet struct {
 	amount uint
+}
+
+type storage struct {
+	wallets []wallet
 }
