@@ -23,10 +23,6 @@ type BaseContainer struct {
 	circularDeps *circularDeps
 }
 
-type finalContainerErr struct {
-	error
-}
-
 func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
 	meta := make(map[string]metaServiceDefinition)
 	for n, v := range definitions {
@@ -90,7 +86,7 @@ func (b BaseContainer) Get(id string) (service interface{}, err error) {
 	service, err = serviceDef.definition.Provider()
 
 	if err != nil {
-		if finalErr, ok := err.(finalContainerErr); ok {
+		if finalErr, ok := err.(finalErr); ok {
 			return nil, finalErr
 		}
 		return nil, fmt.Errorf("cannot create service `%s`: %s", id, err.Error())
