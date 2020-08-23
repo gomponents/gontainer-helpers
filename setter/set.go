@@ -21,7 +21,7 @@ func set(strct reflect.Value, field string, val interface{}) error {
 		v = reflect.ValueOf(val)
 	}
 	if !v.Type().ConvertibleTo(f.Type()) {
-		return fmt.Errorf("cannot cast `%s` to `%s`", v.Type().Kind().String(), f.Type().Kind().String())
+		return fmt.Errorf("cannot cast `%s` to `%s`", v.Type().String(), f.Type().String())
 	}
 	v = v.Convert(f.Type())
 	if !f.CanSet() { // handle unexported fields
