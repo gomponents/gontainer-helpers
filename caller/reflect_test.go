@@ -2,6 +2,7 @@ package caller
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -14,17 +15,6 @@ func TestMustCall(t *testing.T) {
 		assert.Equal(t, "", p.name)
 		MustCall(p.setName, "Jane")
 		assert.Equal(t, "Jane", p.name)
-	})
-
-	t.Run("Convert []interface{} to []type", func(t *testing.T) {
-		result := MustCall(
-			func(input []int) []int {
-				return input
-			},
-			[]interface{}{1, 2, 3},
-		)
-		assert.Len(t, result, 1)
-		assert.Equal(t, []int{1, 2, 3}, result[0])
 	})
 
 	t.Run("Given invalid functions", func(t *testing.T) {
@@ -120,6 +110,96 @@ func TestMustCall(t *testing.T) {
 					s.expected,
 					MustCall(s.fn, s.args...),
 				)
+			})
+		}
+	})
+
+	t.Run("Convert parameters", func(t *testing.T) {
+		float64Val := float64(5)
+
+		scenarios := map[string]struct {
+			fn     interface{}
+			input  interface{}
+			output interface{}
+			error  string
+		}{
+			"[]interface{} to []type (correct)": {
+				fn: func(v []int) []int {
+					return v
+				},
+				input:  []interface{}{1, 2, 3},
+				output: []int{1, 2, 3},
+			},
+			"[]interface{} to []type (incorrect)": {
+				fn: func(v []int) []int {
+					return v
+				},
+				input: []struct{}{},
+				error: "arg0: cannot cast `[]struct {}` to `[]int`",
+			},
+			"float64 to int": {
+				fn: func(v int) int {
+					return v
+				},
+				input:  float64(math.Pi),
+				output: 3,
+			},
+			"*float64 to *int": {
+				fn:    func(v *int) {},
+				input: &float64Val,
+				error: "arg0: cannot cast `*float64` to `*int`",
+			},
+			"*float64 to *float32": {
+				fn:    func(v *float32) {},
+				input: &float64Val,
+				error: "arg0: cannot cast `*float64` to `*float32`",
+			},
+			"int to float64": {
+				fn: func(v float64) float64 {
+					return v
+				},
+				input:  int(5),
+				output: float64(5),
+			},
+			"string to []byte": {
+				fn: func(v []byte) []byte {
+					return v
+				},
+				input:  "hello",
+				output: []byte("hello"),
+			},
+			"[]byte to string": {
+				fn: func(v string) string {
+					return v
+				},
+				input:  []byte("hello"),
+				output: "hello",
+			},
+			"string to int": {
+				fn:    func(int) {},
+				input: "5",
+				error: "arg0: cannot cast `string` to `int`",
+			},
+		}
+
+		for n, s := range scenarios {
+			t.Run(n, func(t *testing.T) {
+				defer func() {
+					if s.error == "" {
+						assert.Nil(t, recover())
+						return
+					}
+
+					assert.Equal(
+						t,
+						s.error,
+						fmt.Sprintf("%s", recover()),
+					)
+				}()
+
+				r := MustCall(s.fn, s.input)
+				assert.Len(t, r, 1)
+				assert.Equal(t, r[0], s.output)
 			})
 		}
 	})
