@@ -1,6 +1,8 @@
 package reflect
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func Convert(from reflect.Value, to reflect.Type) (reflect.Value, bool) {
 	if from.Type().ConvertibleTo(to) {
