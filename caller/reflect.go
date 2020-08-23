@@ -163,7 +163,7 @@ type reflectType struct {
 }
 
 // inVariadicAware works almost same as reflect.Type.In,
-// but it returns t.In(i).Elem() for t.isVariadic() && i >= t.NumIn().
+// but it returns t.In(t.NumIn() - 1).Elem() for t.isVariadic() && i >= t.NumIn().
 func (t reflectType) inVariadicAware(i int) reflect.Type {
 	last := t.NumIn() - 1
 	if i > last {
