@@ -5,8 +5,9 @@ import (
 )
 
 type BaseParamContainer struct {
-	providers map[string]ParamProvider
-	params    map[string]interface{}
+	providers    map[string]ParamProvider
+	params       map[string]interface{}
+	circularDeps *circularDeps
 }
 
 type ParamProvider func() interface{}
@@ -16,17 +17,23 @@ func NewBaseParamContainer(providers map[string]ParamProvider) *BaseParamContain
 		providers = make(map[string]ParamProvider)
 	}
 	return &BaseParamContainer{
-		providers: providers,
-		params:    make(map[string]interface{}),
+		providers:    providers,
+		params:       make(map[string]interface{}),
+		circularDeps: newCircularDeps(),
 	}
 }
 
 func (b BaseParamContainer) GetParam(id string) (val interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("parameter `%s`: %s", id, r)
+			err = fmt.Errorf("cannot get parameter `%s`: %s", id, r)
 		}
 	}()
+
+	defer b.circularDeps.stop()
+	if deps := b.circularDeps.start(id); deps != nil {
+		return nil, newCircularDepError(deps)
+	}
 
 	if b.HasParam(id) {
 		param, ok := b.params[id]

@@ -3,7 +3,6 @@ package container
 import (
 	"fmt"
 	"sort"
-	"strings"
 )
 
 type Provider = func() (interface{}, error)
@@ -67,13 +66,16 @@ func (b BaseContainer) Override(id string, s ServiceDefinition) {
 	}
 }
 
-func (b BaseContainer) Get(id string) (interface{}, error) {
+func (b BaseContainer) Get(id string) (service interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("cannot create service `%s`: %s", id, r)
+		}
+	}()
+
 	defer b.circularDeps.stop()
 	if deps := b.circularDeps.start(id); deps != nil {
-		return nil, finalContainerErr{fmt.Errorf(
-			"circular dependency: %s",
-			strings.Join(deps, " -> "),
-		)}
+		return nil, newCircularDepError(deps)
 	}
 
 	if !b.Has(id) {
@@ -85,7 +87,7 @@ func (b BaseContainer) Get(id string) (interface{}, error) {
 		return serviceDef.service, nil
 	}
 
-	service, err := serviceDef.definition.Provider()
+	service, err = serviceDef.definition.Provider()
 
 	if err != nil {
 		if finalErr, ok := err.(finalContainerErr); ok {
