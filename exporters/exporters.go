@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 var (
@@ -63,12 +64,21 @@ func (c ChainExporter) Export(v interface{}) (string, error) {
 }
 
 func NewDefaultExporter() Exporter {
-	return NewChainExporter(
+	interfaceSliceExporter := NewInterfaceSliceExporter(nil)
+	primitiveTypeSliceExporter := NewPrimitiveTypeSliceExporter(nil)
+
+	result := NewChainExporter(
 		&BoolExporter{},
 		&NilExporter{},
 		&NumericExporter{},
 		&StringExporter{},
+		interfaceSliceExporter,
+		primitiveTypeSliceExporter,
 	)
+	interfaceSliceExporter.exporter = result
+	primitiveTypeSliceExporter.exporter = result
+
+	return result
 }
 
 func NewChainExporter(exporters ...SubExporter) *ChainExporter {
@@ -157,4 +167,79 @@ func (s StringExporter) Export(v interface{}) (string, error) {
 func (s StringExporter) Supports(v interface{}) bool {
 	_, ok := v.(string)
 	return ok
+}
+
+type InterfaceSliceExporter struct {
+	exporter Exporter
+}
+
+func NewInterfaceSliceExporter(exporter Exporter) *InterfaceSliceExporter {
+	return &InterfaceSliceExporter{exporter: exporter}
+}
+
+func (i InterfaceSliceExporter) Export(v interface{}) (string, error) {
+	val := reflect.ValueOf(v)
+	if val.Len() == 0 {
+		return "make([]interface{}, 0)", nil
+	}
+	parts := make([]string, val.Len())
+	for j := 0; j < val.Len(); j++ {
+		part, err := i.exporter.Export(val.Index(j).Interface())
+		if err != nil {
+			return "", fmt.Errorf("cannot export elem %d of slice: %s", j, err.Error())
+		}
+		parts[j] = part
+	}
+
+	return "[]interface{}{" + strings.Join(parts, ", ") + "}", nil
+}
+
+func (i InterfaceSliceExporter) Supports(v interface{}) bool {
+	val := reflect.ValueOf(v)
+	return val.Type().Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Interface
+}
+
+type PrimitiveTypeSliceExporter struct {
+	exporter Exporter
+}
+
+func NewPrimitiveTypeSliceExporter(exporter Exporter) *PrimitiveTypeSliceExporter {
+	return &PrimitiveTypeSliceExporter{exporter: exporter}
+}
+
+func (p PrimitiveTypeSliceExporter) Export(v interface{}) (string, error) {
+	val := reflect.ValueOf(v)
+	if val.Len() == 0 {
+		return fmt.Sprintf("make([]%s, 0)", val.Type().Elem().Kind().String()), nil
+	}
+	parts := make([]string, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		var err error
+		parts[i], err = p.exporter.Export(val.Index(i).Interface())
+		if err != nil {
+			return "", fmt.Errorf("unexpected err when exporting elem %d: %s", i, err.Error())
+		}
+	}
+	return "[]" + val.Type().Elem().Kind().String() + "{" + strings.Join(parts, ", ") + "}", nil
+}
+
+func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
+	val := reflect.ValueOf(v)
+	if val.Type().Kind() != reflect.Slice {
+		return false
+	}
+
+	switch val.Type().Elem().Kind() {
+	case
+		reflect.Bool,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint:
+		return true
+	}
+
+	return false
 }
