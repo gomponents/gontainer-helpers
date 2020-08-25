@@ -23,6 +23,10 @@ func (b BaseTaggedContainer) GetByTag(tag string) ([]interface{}, error) {
 		priority int
 	}, 0)
 
+	if _, ok := b.mapping[tag]; !ok {
+		return nil, fmt.Errorf("tag `%s` is not registered", tag)
+	}
+
 	for id, p := range b.mapping[tag] {
 		svcs = append(
 			svcs,
