@@ -3,7 +3,6 @@ package exporters
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,22 +85,52 @@ func TestChainExporter_Export(t *testing.T) {
 }
 
 func TestExport(t *testing.T) {
-	originalExporter := defaultExporter
-	defer func() {
-		defaultExporter = originalExporter
-	}()
+	scenarios := []struct {
+		input  interface{}
+		output string
+		error  string
+	}{
+		{
+			input:  123,
+			output: "123",
+		},
+		{
+			input:  []interface{}{1, "2", 3.14},
+			output: `[]interface{}{1, "2", 3.14}`,
+		},
+		{
+			input:  []interface{}{},
+			output: "make([]interface{}, 0)",
+		},
+		{
+			input: []interface{}{struct{}{}},
+			error: "cannot export elem 0 of slice: parameter of type `struct {}` is not supported",
+		},
+		{
+			input:  []int{1, 2, 3},
+			output: "[]int{1, 2, 3}",
+		},
+	}
 
-	t.Run("Given valid scenario", func(t *testing.T) {
-		expected := fmt.Sprintf("%f", rand.Float32())
-		defaultExporter = mockExporter{
-			result: expected,
-		}
-		result, err := Export(123)
-		assert.NoError(t, err)
-		assert.Equal(t, expected, result)
-	})
+	for i, s := range scenarios {
+		t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+			o, err := Export(s.input)
+			if s.error == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, s.output, o)
+				return
+			}
+
+			assert.EqualError(t, err, s.error)
+		})
+	}
 
 	t.Run("Given invalid scenario", func(t *testing.T) {
+		originalExporter := defaultExporter
+		defer func() {
+			defaultExporter = originalExporter
+		}()
+
 		expectedErr := fmt.Errorf("my test error")
 		defaultExporter = mockExporter{
 			error: expectedErr,
