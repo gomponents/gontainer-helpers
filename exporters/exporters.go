@@ -179,24 +179,29 @@ func NewInterfaceSliceExporter(exporter Exporter) *InterfaceSliceExporter {
 
 func (i InterfaceSliceExporter) Export(v interface{}) (string, error) {
 	val := reflect.ValueOf(v)
-	if val.Len() == 0 {
+	if val.Type().Kind() == reflect.Slice && val.Len() == 0 {
 		return "make([]interface{}, 0)", nil
 	}
 	parts := make([]string, val.Len())
 	for j := 0; j < val.Len(); j++ {
 		part, err := i.exporter.Export(val.Index(j).Interface())
 		if err != nil {
-			return "", fmt.Errorf("cannot export elem %d of slice: %s", j, err.Error())
+			return "", fmt.Errorf("cannot export elem %d of %s: %s", j, val.Type().Kind().String(), err.Error())
 		}
 		parts[j] = part
 	}
 
-	return "[]interface{}{" + strings.Join(parts, ", ") + "}", nil
+	prefix := "[]interface{}"
+	if val.Type().Kind() == reflect.Array {
+		prefix = fmt.Sprintf("[%d]interface{}", val.Len())
+	}
+
+	return prefix + "{" + strings.Join(parts, ", ") + "}", nil
 }
 
 func (i InterfaceSliceExporter) Supports(v interface{}) bool {
 	val := reflect.ValueOf(v)
-	return val.Type().Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Interface
+	return (val.Type().Kind() == reflect.Slice || val.Type().Kind() == reflect.Array) && val.Type().Elem().Kind() == reflect.Interface
 }
 
 type PrimitiveTypeSliceExporter struct {
@@ -209,7 +214,7 @@ func NewPrimitiveTypeSliceExporter(exporter Exporter) *PrimitiveTypeSliceExporte
 
 func (p PrimitiveTypeSliceExporter) Export(v interface{}) (string, error) {
 	val := reflect.ValueOf(v)
-	if val.Len() == 0 {
+	if val.Type().Kind() == reflect.Slice && val.Len() == 0 {
 		return fmt.Sprintf("make([]%s, 0)", val.Type().Elem().Kind().String()), nil
 	}
 	parts := make([]string, val.Len())
@@ -220,12 +225,16 @@ func (p PrimitiveTypeSliceExporter) Export(v interface{}) (string, error) {
 			return "", fmt.Errorf("unexpected err when exporting elem %d: %s", i, err.Error())
 		}
 	}
-	return "[]" + val.Type().Elem().Kind().String() + "{" + strings.Join(parts, ", ") + "}", nil
+	prefix := "[]"
+	if val.Type().Kind() == reflect.Array {
+		prefix = fmt.Sprintf("[%d]", val.Len())
+	}
+	return prefix + val.Type().Elem().Kind().String() + "{" + strings.Join(parts, ", ") + "}", nil
 }
 
 func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
 	val := reflect.ValueOf(v)
-	if val.Type().Kind() != reflect.Slice {
+	if val.Type().Kind() != reflect.Slice && val.Type().Kind() != reflect.Array {
 		return false
 	}
 

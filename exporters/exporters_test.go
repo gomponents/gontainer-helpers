@@ -99,8 +99,16 @@ func TestExport(t *testing.T) {
 			output: `[]interface{}{1, "2", 3.14}`,
 		},
 		{
+			input:  [3]interface{}{1, "2", 3.14},
+			output: `[3]interface{}{1, "2", 3.14}`,
+		},
+		{
 			input:  []interface{}{},
 			output: "make([]interface{}, 0)",
+		},
+		{
+			input:  [0]interface{}{},
+			output: "[0]interface{}{}",
 		},
 		{
 			input: []interface{}{struct{}{}},
@@ -109,6 +117,18 @@ func TestExport(t *testing.T) {
 		{
 			input:  []int{1, 2, 3},
 			output: "[]int{1, 2, 3}",
+		},
+		{
+			input:  [3]int{1, 2, 3},
+			output: "[3]int{1, 2, 3}",
+		},
+		{
+			input:  []float32{},
+			output: "make([]float32, 0)",
+		},
+		{
+			input:  [0]float32{},
+			output: "[0]float32{}",
 		},
 	}
 
