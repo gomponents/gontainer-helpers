@@ -29,24 +29,24 @@ func TestChainExporter_Export(t *testing.T) {
 				output: "true",
 			},
 			"123": {
-				input:  123,
-				output: "123",
+				input:  int(123),
+				output: "int(123)",
 			},
 			"`hello world`": {
 				input:  "hello world",
 				output: `"hello world"`,
 			},
 			"complex64(0.588)": {
-				input:  complex64(0.588),
-				output: "(0.588+0i)",
+				input:  complex64((0.588)),
+				output: "complex64((0.588+0i))",
 			},
 			"complex128(0.588)": {
-				input:  complex128(0.588),
-				output: "(0.588+0i)",
+				input:  complex128((0.588)),
+				output: "complex128((0.588+0i))",
 			},
 			"complex128(3.14)": {
-				input:  complex128(3.14),
-				output: "(3.14+0i)",
+				input:  complex128((3.14)),
+				output: "complex128((3.14+0i))",
 			},
 		}
 
