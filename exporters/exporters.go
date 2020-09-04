@@ -113,6 +113,8 @@ func (n NilExporter) Supports(v interface{}) bool {
 type NumericExporter struct{}
 
 func (n NumericExporter) Export(v interface{}) (string, error) {
+	// todo complex128((123)) remove redundant parentheses
+	// todo check `type foo = int`
 	t := reflect.TypeOf(v)
 	switch t.Kind() {
 	case
