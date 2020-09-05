@@ -113,8 +113,6 @@ func (n NilExporter) Supports(v interface{}) bool {
 type NumericExporter struct{}
 
 func (n NumericExporter) Export(v interface{}) (string, error) {
-	// todo complex128((123)) remove redundant parentheses
-	// todo check `type foo = int`, use t.PkgPath() != ""
 	t := reflect.TypeOf(v)
 	switch t.Kind() {
 	case
@@ -122,7 +120,8 @@ func (n NumericExporter) Export(v interface{}) (string, error) {
 		reflect.Float64,
 		reflect.Complex64,
 		reflect.Complex128:
-		return fmt.Sprintf("%s(%#v)", t.Kind().String(), v), nil
+		sv := strings.Trim(fmt.Sprintf("%#v", v), "()")
+		return fmt.Sprintf("%s(%s)", t.Kind().String(), sv), nil
 	}
 	return fmt.Sprintf("%s(%d)", t.Kind().String(), v), nil
 }
@@ -130,6 +129,10 @@ func (n NumericExporter) Export(v interface{}) (string, error) {
 func (n NumericExporter) Supports(v interface{}) bool {
 	t := reflect.TypeOf(v)
 	if t == nil {
+		return false
+	}
+
+	if t.PkgPath() != "" {
 		return false
 	}
 
@@ -197,8 +200,10 @@ func (i InterfaceSliceExporter) Export(v interface{}) (string, error) {
 }
 
 func (i InterfaceSliceExporter) Supports(v interface{}) bool {
-	val := reflect.ValueOf(v)
-	return (val.Type().Kind() == reflect.Slice || val.Type().Kind() == reflect.Array) && val.Type().Elem().Kind() == reflect.Interface
+	t := reflect.ValueOf(v).Type()
+	return t.PkgPath() == "" &&
+		(t.Kind() == reflect.Slice || t.Kind() == reflect.Array) &&
+		t.Elem().Kind() == reflect.Interface
 }
 
 type PrimitiveTypeSliceExporter struct {
@@ -232,6 +237,9 @@ func (p PrimitiveTypeSliceExporter) Export(v interface{}) (string, error) {
 func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
 	val := reflect.ValueOf(v)
 	if val.Type().Kind() != reflect.Slice && val.Type().Kind() != reflect.Array {
+		return false
+	}
+	if val.Type().PkgPath() != "" {
 		return false
 	}
 
