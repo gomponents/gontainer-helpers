@@ -8,13 +8,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type myString string
+type aliasString = string
+
 func TestChainExporter_Export(t *testing.T) {
 	exporter := NewDefaultExporter()
 
-	t.Run("Given valid scenarios", func(t *testing.T) {
+	t.Run("Given scenarios", func(t *testing.T) {
 		scenarios := map[string]struct {
 			input  interface{}
 			output string
+			error  string
 		}{
 			"nil": {
 				input:  nil,
@@ -52,22 +56,6 @@ func TestChainExporter_Export(t *testing.T) {
 				input:  complex128(3.14),
 				output: "complex128(3.14+0i)",
 			},
-		}
-
-		for k, s := range scenarios {
-			t.Run(k, func(t *testing.T) {
-				output, err := exporter.Export(s.input)
-				assert.NoError(t, err)
-				assert.Equal(t, s.output, output)
-			})
-		}
-	})
-
-	t.Run("Given invalid scenarios", func(t *testing.T) {
-		scenarios := map[string]struct {
-			input interface{}
-			error string
-		}{
 			"struct {}": {
 				input: struct{}{},
 				error: "parameter of type `struct {}` is not supported",
@@ -76,13 +64,26 @@ func TestChainExporter_Export(t *testing.T) {
 				input: t,
 				error: "parameter of type `*testing.T` is not supported",
 			},
+			"myString": {
+				input: myString("foo"),
+				error: "parameter of type `exporters.myString` is not supported",
+			},
+			`aliasString("foo")`: {
+				input:  aliasString("foo"),
+				output: `"foo"`,
+			},
 		}
 
 		for k, s := range scenarios {
 			t.Run(k, func(t *testing.T) {
 				output, err := exporter.Export(s.input)
-				assert.EqualError(t, err, s.error)
-				assert.Equal(t, "", output)
+				if s.error != "" {
+					assert.EqualError(t, err, s.error)
+					assert.Equal(t, "", output)
+					return
+				}
+				assert.NoError(t, err)
+				assert.Equal(t, s.output, output)
 			})
 		}
 	})
