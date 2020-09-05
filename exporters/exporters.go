@@ -114,8 +114,9 @@ type NumericExporter struct{}
 
 func (n NumericExporter) Export(v interface{}) (string, error) {
 	// todo complex128((123)) remove redundant parentheses
-	// todo check `type foo = int`
+	// todo check `type foo = int`, use t.PkgPath() != ""
 	t := reflect.TypeOf(v)
+	fmt.Println(t.String(), t.PkgPath())
 	switch t.Kind() {
 	case
 		reflect.Float32,
@@ -127,8 +128,14 @@ func (n NumericExporter) Export(v interface{}) (string, error) {
 	return fmt.Sprintf("%s(%d)", t.Kind().String(), v), nil
 }
 
-var (
-	numericKinds = []reflect.Kind{
+func (n NumericExporter) Supports(v interface{}) bool {
+	t := reflect.TypeOf(v)
+	if t == nil {
+		return false
+	}
+
+	switch t.Kind() {
+	case
 		reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
@@ -142,20 +149,8 @@ var (
 		reflect.Float32,
 		reflect.Float64,
 		reflect.Complex64,
-		reflect.Complex128,
-	}
-)
-
-func (n NumericExporter) Supports(v interface{}) bool {
-	t := reflect.TypeOf(v)
-	if t == nil {
-		return false
-	}
-
-	for _, k := range numericKinds {
-		if k == t.Kind() {
-			return true
-		}
+		reflect.Complex128:
+		return true
 	}
 
 	return false
