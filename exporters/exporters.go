@@ -116,7 +116,6 @@ func (n NumericExporter) Export(v interface{}) (string, error) {
 	// todo complex128((123)) remove redundant parentheses
 	// todo check `type foo = int`, use t.PkgPath() != ""
 	t := reflect.TypeOf(v)
-	fmt.Println(t.String(), t.PkgPath())
 	switch t.Kind() {
 	case
 		reflect.Float32,
