@@ -10,6 +10,10 @@ import (
 
 type myString string
 type aliasString = string
+type myInt int
+type aliasInt = int
+type myBool bool
+type aliasBool = bool
 
 func TestChainExporter_Export(t *testing.T) {
 	exporter := NewDefaultExporter()
@@ -64,13 +68,29 @@ func TestChainExporter_Export(t *testing.T) {
 				input: t,
 				error: "parameter of type `*testing.T` is not supported",
 			},
-			"myString": {
+			`myString("foo")`: {
 				input: myString("foo"),
 				error: "parameter of type `exporters.myString` is not supported",
 			},
 			`aliasString("foo")`: {
 				input:  aliasString("foo"),
 				output: `"foo"`,
+			},
+			`myInt(5)`: {
+				input: myInt(5),
+				error: "parameter of type `exporters.myInt` is not supported",
+			},
+			`aliasInt(5)`: {
+				input:  aliasInt(5),
+				output: "int(5)",
+			},
+			`myBool(true)`: {
+				input: myBool(true),
+				error: "parameter of type `exporters.myBool` is not supported",
+			},
+			`aliasBool(true)`: {
+				input:  aliasBool(true),
+				output: "true",
 			},
 		}
 
