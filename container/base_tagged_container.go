@@ -7,13 +7,13 @@ import (
 
 type BaseTaggedContainer struct {
 	container Container
-	mapping   map[string]map[string]int
+	mapping   map[string]map[string]int // mapping[tag][serviceID] = priority
 }
 
 func NewBaseTaggedContainer(container Container) *BaseTaggedContainer {
 	return &BaseTaggedContainer{
 		container: container,
-		mapping:   make(map[string]map[string]int), // mapping[tag][serviceID] = priority
+		mapping:   make(map[string]map[string]int),
 	}
 }
 
@@ -79,4 +79,9 @@ func (b BaseTaggedContainer) OverrideTagService(tag string, id string, priority 
 	}
 
 	b.mapping[tag][id] = priority
+}
+
+func (b BaseTaggedContainer) IsTaggedBy(id string, tag string) bool {
+	_, ok := b.mapping[tag][id]
+	return ok
 }
