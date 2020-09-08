@@ -403,6 +403,21 @@ func TestCallWitherByName(t *testing.T) {
 	})
 }
 
+func TestCallDecorator(t *testing.T) {
+	t.Run("Given decorator", func(t *testing.T) {
+		p := person{name: "Mary"}
+		empl, err := CallDecorator(p, func(p person) employee {
+			return employee{person: p}
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, employee{person: p}, empl)
+	})
+}
+
+type employee struct {
+	person
+}
+
 type ints []int
 
 func (i ints) Append(v int) ints {
