@@ -59,7 +59,7 @@ func (b BaseTaggedContainer) MustGetByTag(tag string) []interface{} {
 	return result
 }
 
-func (b BaseTaggedContainer) TagService(tag string, id string, priority int) error {
+func (b BaseTaggedContainer) TagService(id string, tag string, priority int) error {
 	if _, ok := b.mapping[tag]; !ok {
 		b.mapping[tag] = make(map[string]int)
 	}
@@ -73,7 +73,7 @@ func (b BaseTaggedContainer) TagService(tag string, id string, priority int) err
 	return nil
 }
 
-func (b BaseTaggedContainer) OverrideTagService(tag string, id string, priority int) {
+func (b BaseTaggedContainer) OverrideTagService(id string, tag string, priority int) {
 	if _, ok := b.mapping[tag]; !ok {
 		b.mapping[tag] = make(map[string]int)
 	}
