@@ -307,6 +307,10 @@ func TestPrimitiveTypeSliceExporter_Supports(t *testing.T) {
 			input:    []struct{}{},
 			expected: false,
 		},
+		{
+			input:    []myBool{},
+			expected: false,
+		},
 	}
 
 	for i, s := range scenarios {
