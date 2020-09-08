@@ -157,7 +157,7 @@ func CallDecorator(decorator interface{}, object interface{}, args ...interface{
 		return nil, fmt.Errorf("decorator must return 1 or 2 values, given function returns %d values", t.NumOut())
 	}
 	if t.NumOut() == 2 && !t.Out(1).Implements(errorInterface) {
-		return nil, fmt.Errorf("second value returned by provider must implements error interface")
+		return nil, fmt.Errorf("second value returned by provider must implements error interface, `%T` given", decorator)
 	}
 
 	results, err := Call(decorator, append([]interface{}{object}, args...))

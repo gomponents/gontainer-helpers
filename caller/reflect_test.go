@@ -417,6 +417,8 @@ func TestCallDecorator(t *testing.T) {
 	})
 
 	t.Run("Given errors", func(t *testing.T) {
+		fnIntInt := func() (int, int) { return 0, 0 }
+
 		scenarios := []struct {
 			decorator interface{}
 			object    interface{}
@@ -426,6 +428,14 @@ func TestCallDecorator(t *testing.T) {
 			{
 				decorator: 5,
 				error:     "decorator must be kind of func, int given",
+			},
+			{
+				decorator: func() {},
+				error:     "decorator must return 1 or 2 values, given function returns 0 values",
+			},
+			{
+				decorator: fnIntInt,
+				error:     fmt.Sprintf("second value returned by provider must implements error interface, `%T` given", fnIntInt),
 			},
 		}
 
