@@ -90,3 +90,25 @@ func TestBaseTaggedContainer_IsTaggedBy(t *testing.T) {
 	assert.True(t, tagged.IsTaggedBy("productRepository", "repo"))
 	assert.False(t, tagged.IsTaggedBy("userRepository", "db"))
 }
+
+func TestBaseTaggedContainer_MustGetByTag(t *testing.T) {
+	t.Run("Given success", func(t *testing.T) {
+		db := struct{}{}
+		c := NewBaseTaggedContainer(mockContainer{
+			service: db,
+		})
+		c.OverrideTagService("mysql", "db", 0)
+		assert.Equal(t, []interface{}{db}, c.MustGetByTag("db"))
+	})
+	t.Run("Given error", func(t *testing.T) {
+		defer func() {
+			assert.Equal(t, "cannot get services by tag `db`: service `mysql` does not exists", recover())
+		}()
+
+		c := NewBaseTaggedContainer(mockContainer{
+			error: fmt.Errorf("service `mysql` does not exists"),
+		})
+		c.OverrideTagService("mysql", "db", 0)
+		c.MustGetByTag("db")
+	})
+}
