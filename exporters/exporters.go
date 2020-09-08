@@ -200,7 +200,10 @@ func (i InterfaceSliceExporter) Export(v interface{}) (string, error) {
 }
 
 func (i InterfaceSliceExporter) Supports(v interface{}) bool {
-	t := reflect.ValueOf(v).Type()
+	t := reflect.TypeOf(v)
+	if t == nil {
+		return false
+	}
 	return t.PkgPath() == "" &&
 		(t.Kind() == reflect.Slice || t.Kind() == reflect.Array) &&
 		t.Elem().Kind() == reflect.Interface
@@ -236,6 +239,9 @@ func (p PrimitiveTypeSliceExporter) Export(v interface{}) (string, error) {
 
 func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
 	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Invalid {
+		return false
+	}
 	if val.Type().Kind() != reflect.Slice && val.Type().Kind() != reflect.Array {
 		return false
 	}

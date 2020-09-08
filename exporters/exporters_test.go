@@ -15,6 +15,15 @@ type aliasInt = int
 type myBool bool
 type aliasBool = bool
 
+type mockExporter struct {
+	result string
+	error  error
+}
+
+func (m mockExporter) Export(interface{}) (string, error) {
+	return m.result, m.error
+}
+
 func TestChainExporter_Export(t *testing.T) {
 	exporter := NewDefaultExporter()
 
@@ -285,11 +294,40 @@ func TestNumericExporter_Supports(t *testing.T) {
 	}
 }
 
-type mockExporter struct {
-	result string
-	error  error
-}
+func TestPrimitiveTypeSliceExporter_Supports(t *testing.T) {
+	scenarios := []struct {
+		input    interface{}
+		expected bool
+	}{
+		{
+			input:    nil,
+			expected: false,
+		},
+		{
+			input:    math.Pi,
+			expected: false,
+		},
+		{
+			input:    "3.14",
+			expected: false,
+		},
+		{
+			input:    []uint{0, 1},
+			expected: true,
+		},
+		{
+			input:    []struct{}{},
+			expected: false,
+		},
+	}
 
-func (m mockExporter) Export(interface{}) (string, error) {
-	return m.result, m.error
+	for i, s := range scenarios {
+		t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+			assert.Equal(
+				t,
+				s.expected,
+				PrimitiveTypeSliceExporter{}.Supports(s.input),
+			)
+		})
+	}
 }
