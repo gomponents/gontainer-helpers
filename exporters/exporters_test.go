@@ -331,3 +331,45 @@ func TestPrimitiveTypeSliceExporter_Supports(t *testing.T) {
 		})
 	}
 }
+
+func TestInterfaceSliceExporter_Supports(t *testing.T) {
+	scenarios := []struct {
+		input    interface{}
+		expected bool
+	}{
+		{
+			input:    nil,
+			expected: false,
+		},
+		{
+			input:    math.Pi,
+			expected: false,
+		},
+		{
+			input:    "3.14",
+			expected: false,
+		},
+		{
+			input:    []uint{0, 1},
+			expected: false,
+		},
+		{
+			input:    []struct{}{},
+			expected: false,
+		},
+		{
+			input:    []interface{}{},
+			expected: true,
+		},
+	}
+
+	for i, s := range scenarios {
+		t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+			assert.Equal(
+				t,
+				s.expected,
+				PrimitiveTypeSliceExporter{}.Supports(s.input),
+			)
+		})
+	}
+}
