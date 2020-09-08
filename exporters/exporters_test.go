@@ -356,7 +356,8 @@ func TestInterfaceSliceExporter_Supports(t *testing.T) {
 			assert.Equal(
 				t,
 				s.expected,
-				PrimitiveTypeSliceExporter{}.Supports(s.input),
+				InterfaceSliceExporter{}.Supports(s.input),
+				fmt.Sprintf("value: %#v", s.input),
 			)
 		})
 	}
