@@ -216,6 +216,14 @@ func TestToString(t *testing.T) {
 			input:  "Mary Jane",
 			output: "Mary Jane",
 		},
+		{
+			input:  int(5),
+			output: "5",
+		},
+		{
+			input:  float64(3.14),
+			output: "3.14",
+		},
 	}
 
 	for i, s := range scenarios {

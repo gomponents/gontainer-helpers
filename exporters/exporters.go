@@ -12,7 +12,7 @@ var (
 	defaultStringCaster = NewChainExporter(
 		&BoolExporter{},
 		&NilExporter{},
-		&NumericExporter{},
+		&NumericExporter{ExplicitType: false},
 	)
 )
 
@@ -70,7 +70,7 @@ func NewDefaultExporter() Exporter {
 	result := NewChainExporter(
 		&BoolExporter{},
 		&NilExporter{},
-		&NumericExporter{},
+		&NumericExporter{ExplicitType: true},
 		&StringExporter{},
 		interfaceSliceExporter,
 		primitiveTypeSliceExporter,
@@ -110,20 +110,25 @@ func (n NilExporter) Supports(v interface{}) bool {
 	return v == nil
 }
 
-type NumericExporter struct{}
+type NumericExporter struct {
+	ExplicitType bool
+}
 
 func (n NumericExporter) Export(v interface{}) (string, error) {
 	t := reflect.TypeOf(v)
+	var sv string
 	switch t.Kind() {
 	case
 		reflect.Float32,
-		reflect.Float64,
-		reflect.Complex64,
-		reflect.Complex128:
-		sv := strings.Trim(fmt.Sprintf("%#v", v), "()")
-		return fmt.Sprintf("%s(%s)", t.Kind().String(), sv), nil
+		reflect.Float64:
+		sv = fmt.Sprintf("%#v", v)
+	default:
+		sv = fmt.Sprintf("%d", v)
 	}
-	return fmt.Sprintf("%s(%d)", t.Kind().String(), v), nil
+	if n.ExplicitType {
+		sv = fmt.Sprintf("%s(%s)", t.Kind().String(), sv)
+	}
+	return sv, nil
 }
 
 func (n NumericExporter) Supports(v interface{}) bool {
@@ -149,9 +154,7 @@ func (n NumericExporter) Supports(v interface{}) bool {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Float32,
-		reflect.Float64,
-		reflect.Complex64,
-		reflect.Complex128:
+		reflect.Float64:
 		return true
 	}
 
@@ -263,9 +266,7 @@ func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Float32,
-		reflect.Float64,
-		reflect.Complex64,
-		reflect.Complex128:
+		reflect.Float64:
 		return true
 	}
 
