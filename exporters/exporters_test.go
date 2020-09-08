@@ -349,6 +349,10 @@ func TestInterfaceSliceExporter_Supports(t *testing.T) {
 			input:    []interface{}{},
 			expected: true,
 		},
+		{
+			input:    []myBool{},
+			expected: false,
+		},
 	}
 
 	for i, s := range scenarios {
