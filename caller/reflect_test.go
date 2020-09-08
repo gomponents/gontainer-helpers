@@ -322,7 +322,7 @@ func TestCallProvider(t *testing.T) {
 					return nil
 				},
 				params: []interface{}{1, 2, 3},
-				err:    "call too many input arguments",
+				err:    "call with too many input arguments",
 			},
 		}
 
