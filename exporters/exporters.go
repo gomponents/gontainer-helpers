@@ -248,7 +248,7 @@ func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
 	if val.Type().Kind() != reflect.Slice && val.Type().Kind() != reflect.Array {
 		return false
 	}
-	if val.Type().PkgPath() != "" {
+	if val.Type().Elem().PkgPath() != "" {
 		return false
 	}
 
