@@ -406,11 +406,36 @@ func TestCallWitherByName(t *testing.T) {
 func TestCallDecorator(t *testing.T) {
 	t.Run("Given decorator", func(t *testing.T) {
 		p := person{name: "Mary"}
-		empl, err := CallDecorator(p, func(p person) employee {
-			return employee{person: p}
-		})
+		empl, err := CallDecorator(
+			func(p person) employee {
+				return employee{person: p}
+			},
+			p,
+		)
 		assert.NoError(t, err)
 		assert.Equal(t, employee{person: p}, empl)
+	})
+
+	t.Run("Given errors", func(t *testing.T) {
+		scenarios := []struct {
+			decorator interface{}
+			object    interface{}
+			args      []interface{}
+			error     string
+		}{
+			{
+				decorator: 5,
+				error:     "decorator must be kind of func, int given",
+			},
+		}
+
+		for i, s := range scenarios {
+			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+				o, err := CallDecorator(s.decorator, s.object, s.args...)
+				assert.Nil(t, o)
+				assert.EqualError(t, err, s.error)
+			})
+		}
 	})
 }
 
