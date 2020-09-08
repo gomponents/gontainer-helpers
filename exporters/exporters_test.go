@@ -366,3 +366,18 @@ func TestInterfaceSliceExporter_Supports(t *testing.T) {
 		})
 	}
 }
+
+func TestPrimitiveTypeSliceExporter_Export(t *testing.T) {
+	t.Run("Given error in subexporter", func(t *testing.T) {
+		exp := PrimitiveTypeSliceExporter{
+			exporter: ChainExporter{},
+		}
+		v, err := exp.Export([]uint{1})
+		assert.Equal(t, "", v)
+		assert.EqualError(
+			t,
+			err,
+			"unexpected err when exporting elem 0: parameter of type `uint` is not supported",
+		)
+	})
+}
