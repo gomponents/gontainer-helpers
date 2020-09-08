@@ -65,7 +65,33 @@ func TestMustCall(t *testing.T) {
 				defer func() {
 					v := recover()
 					assert.NotNil(t, v)
-					assert.Equal(t, "too many input arguments", v)
+					assert.Equal(t, "call with too many input arguments", v)
+				}()
+				MustCall(s.fn, s.args...)
+			})
+		}
+	})
+
+	t.Run("Given too few arguments", func(t *testing.T) {
+		scenarios := []struct {
+			fn   interface{}
+			args []interface{}
+		}{
+			{
+				fn:   strings.Join,
+				args: []interface{}{},
+			},
+			{
+				fn:   func(a int) {},
+				args: []interface{}{},
+			},
+		}
+		for i, s := range scenarios {
+			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+				defer func() {
+					v := recover()
+					assert.NotNil(t, v)
+					assert.Equal(t, "call with too few input arguments", v)
 				}()
 				MustCall(s.fn, s.args...)
 			})
