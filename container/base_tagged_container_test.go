@@ -1,8 +1,10 @@
 package container
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBaseTaggedContainer_GetByTag(t *testing.T) {
@@ -55,6 +57,14 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 			}
 			assert.NoError(t, tagSvc())
 			assert.EqualError(t, tagSvc(), "service `cmd` is already tagged as `commandHelp`")
+		})
+		t.Run("Parent container returns error", func(t *testing.T) {
+			c := NewBaseTaggedContainer(mockContainer{
+				error: fmt.Errorf("service does not exist"),
+			})
+			c.OverrideTagService("mysql", "db", 0)
+			_, err := c.GetByTag("db")
+			assert.EqualError(t, err, "cannot get services by tag `db`: service does not exist")
 		})
 	})
 }
