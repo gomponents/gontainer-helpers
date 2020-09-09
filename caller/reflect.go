@@ -160,7 +160,7 @@ func CallDecorator(decorator interface{}, object interface{}, args ...interface{
 		return nil, fmt.Errorf("second value returned by provider must implements error interface, `%T` given", decorator)
 	}
 
-	results, err := Call(decorator, append([]interface{}{object}, args...))
+	results, err := Call(decorator, append([]interface{}{object}, args...)...)
 	if err != nil {
 		return nil, err
 	}
