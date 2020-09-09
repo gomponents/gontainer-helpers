@@ -7,6 +7,9 @@ import (
 // Convert converts given value to given type whenever it is possible.
 // In opposition to built-in reflect package it allows to convert []interface{} to []type.
 func Convert(from reflect.Value, to reflect.Type) (reflect.Value, bool) {
+	if from.Kind() == reflect.Invalid {
+		return reflect.Value{}, false
+	}
 	if from.Type().ConvertibleTo(to) {
 		return from.Convert(to), true
 	}
