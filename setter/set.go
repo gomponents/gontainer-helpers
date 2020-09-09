@@ -16,21 +16,12 @@ func set(strct reflect.Value, field string, val interface{}) error {
 	if !f.IsValid() {
 		return fmt.Errorf("field `%s` does not exist", field)
 	}
-	var v reflect.Value
-	// it is required to avoid panic (reflect: call of reflect.Value.Type on zero Value)
-	// in case of the following code
-	// Set(&p, "val", nil)
-	if val == nil {
-		v = reflect.Zero(f.Type()) // required for nil
-	} else {
-		v = reflect.ValueOf(val)
-	}
 
-	cp, ok := ref.Convert(v, f.Type())
-	if !ok {
-		return fmt.Errorf("cannot cast `%s` to `%s`", v.Type().String(), f.Type().String())
+	v, err := ref.Convert(val, f.Type())
+	if err != nil {
+		// todo wrap err
+		return err
 	}
-	v = cp
 
 	if !f.CanSet() { // handle unexported fields
 		f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
@@ -63,24 +54,31 @@ func Set(strct interface{}, field string, val interface{}) error {
 		chain = chain[1:]
 	}
 
+	wrap := func(err error) error {
+		if err == nil {
+			return nil
+		}
+		return fmt.Errorf("`%T`.`%s`: %s", strct, field, err.Error())
+	}
+
 	switch {
 	// s := struct{ val int }{}
 	// Set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Struct):
-		return set(
+		return wrap(set(
 			reflectVal.Elem(),
 			field,
 			val,
-		)
+		))
 
 	// var s interface{} = &struct{ val int }{}
 	// Set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr, reflect.Struct):
-		return set(
+		return wrap(set(
 			reflectVal.Elem().Elem().Elem(),
 			field,
 			val,
-		)
+		))
 
 	// var s interface{} = struct{ val int }{}
 	// Set(&s...
@@ -88,7 +86,7 @@ func Set(strct interface{}, field string, val interface{}) error {
 		v := reflectVal.Elem()
 		tmp := reflect.New(v.Elem().Type()).Elem()
 		tmp.Set(v.Elem())
-		if err := set(tmp, field, val); err != nil {
+		if err := wrap(set(tmp, field, val)); err != nil {
 			return err
 		}
 		v.Set(tmp)

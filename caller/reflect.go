@@ -29,20 +29,11 @@ func call(fn reflect.Value, params ...interface{}) []interface{} {
 	paramsRef := make([]reflect.Value, len(params))
 	for i, p := range params {
 		convertTo := fnType.inVariadicAware(i)
-		var vp reflect.Value
-		// it is required to avoid panic (reflect: call of reflect.Value.Type on zero Value)
-		// in case of the following code
-		// MustCall(func(v interface{}) { fmt.Println(v) }, v)
-		if p == nil {
-			vp = reflect.Zero(convertTo)
-		} else {
-			vp = reflect.ValueOf(p)
+		v, err := helpersReflect.Convert(p, convertTo)
+		if err != nil {
+			panic(fmt.Sprintf("arg%d: %s", i, err.Error()))
 		}
-		cp, ok := helpersReflect.Convert(vp, convertTo)
-		if !ok {
-			panic(fmt.Sprintf("arg%d: cannot cast `%s` to `%s`", i, vp.Type().String(), convertTo.String()))
-		}
-		paramsRef[i] = cp
+		paramsRef[i] = v
 	}
 
 	var result []interface{}

@@ -15,22 +15,20 @@ func TestConvert(t *testing.T) {
 		scenarios := map[string]struct {
 			input  interface{}
 			output interface{}
-			ok     bool
+			error  string
 		}{
-			"[]interface{} to []type (correct)": {
+			"[]interface{} to []type": {
 				input:  []interface{}{1, 2, 3},
 				output: []int{1, 2, 3},
-				ok:     true,
 			},
-			"[]interface{} to []type (incorrect)": {
+			"[]struct{}{} to []type": {
 				input:  []struct{}{},
 				output: []int{},
-				ok:     false,
+				error:  "cannot cast `[]struct {}` to `[]int`",
 			},
 			"float64 to int": {
 				input:  float64(math.Pi),
 				output: 3,
-				ok:     true,
 			},
 			//"*float64 to *int": {
 			//	fn:    func(*int) {},
@@ -86,9 +84,12 @@ func TestConvert(t *testing.T) {
 
 		for n, s := range scenarios {
 			t.Run(n, func(t *testing.T) {
-				v, ok := Convert(reflect.ValueOf(s.input), reflect.TypeOf(s.output))
-				assert.Equal(t, s.ok, ok)
-				if ok {
+				v, err := Convert(s.input, reflect.TypeOf(s.output))
+				if s.error != "" {
+					assert.EqualError(t, err, s.error)
+					return
+				}
+				if assert.NoError(t, err) {
 					assert.Equal(t, s.output, v.Interface())
 				}
 			})

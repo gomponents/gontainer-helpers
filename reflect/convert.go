@@ -1,20 +1,38 @@
 package reflect
 
 import (
+	"fmt"
 	"reflect"
 )
 
+func newCannotCastErr(from, to reflect.Type) error {
+	return fmt.Errorf("cannot cast `%s` to `%s`", from.String(), to.String())
+}
+
 // Convert converts given value to given type whenever it is possible.
 // In opposition to built-in reflect package it allows to convert []interface{} to []type.
-func Convert(from reflect.Value, to reflect.Type) (reflect.Value, bool) {
+// todo add comment about zero values
+func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
+	// it is required to avoid panic (reflect: call of reflect.Value.Type on zero Value)
+	// in case of the following code
+	// caller.MustCall(func(v interface{}) { fmt.Println(v) }, v)
+	if value == nil {
+		return reflect.Zero(to), nil
+	}
+	from := reflect.ValueOf(value)
 	if from.Kind() == reflect.Invalid {
-		return reflect.Value{}, false
+		return reflect.Value{}, newCannotCastErr(from.Type(), to)
 	}
 	if from.Type().ConvertibleTo(to) {
-		return from.Convert(to), true
+		return from.Convert(to), nil
 	}
 
-	return convertSliceInterface(from, to)
+	slice, ok := convertSliceInterface(from, to)
+	if !ok {
+		return reflect.Value{}, newCannotCastErr(from.Type(), to)
+	}
+
+	return slice, nil
 }
 
 func convertSliceInterface(from reflect.Value, to reflect.Type) (reflect.Value, bool) {

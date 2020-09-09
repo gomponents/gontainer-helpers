@@ -149,14 +149,14 @@ func TestMustCall(t *testing.T) {
 			output interface{}
 			error  string
 		}{
-			"[]interface{} to []type (correct)": {
+			"[]interface{} to []type": {
 				fn: func(v []int) []int {
 					return v
 				},
 				input:  []interface{}{1, 2, 3},
 				output: []int{1, 2, 3},
 			},
-			"[]interface{} to []type (incorrect)": {
+			"[]struct{}{} to []type": {
 				fn:    func([]int) {},
 				input: []struct{}{},
 				error: "arg0: cannot cast `[]struct {}` to `[]int`",
