@@ -127,13 +127,13 @@ func (c kindChain) String() string {
 	return strings.Join(parts, ".")
 }
 
-func valueToKindChain(v interface{}) kindChain {
+func valueToKindChain(val interface{}) kindChain {
 	var r kindChain
-	ref := reflect.ValueOf(v)
+	v := reflect.ValueOf(val)
 	for {
-		r = append(r, ref.Kind())
-		if ref.Kind() == reflect.Ptr || ref.Kind() == reflect.Interface {
-			ref = ref.Elem()
+		r = append(r, v.Kind())
+		if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+			v = v.Elem()
 			continue
 		}
 		break
