@@ -53,6 +53,10 @@ func TestChainExporter_Export(t *testing.T) {
 				input:  "hello world",
 				output: `"hello world"`,
 			},
+			"[]byte": {
+				input:  []byte("hello world 你好，世界"),
+				output: `[]byte("hello world \u4f60\u597d\uff0c\u4e16\u754c")`,
+			},
 			"struct {}": {
 				input: struct{}{},
 				error: "parameter of type `struct {}` is not supported",

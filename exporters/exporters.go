@@ -72,6 +72,7 @@ func NewDefaultExporter() Exporter {
 		&NilExporter{},
 		&NumericExporter{ExplicitType: true},
 		&StringExporter{},
+		&BytesExporter{},
 		interfaceSliceExporter,
 		primitiveTypeSliceExporter,
 	)
@@ -169,6 +170,18 @@ func (s StringExporter) Export(v interface{}) (string, error) {
 
 func (s StringExporter) Supports(v interface{}) bool {
 	_, ok := v.(string)
+	return ok
+}
+
+type BytesExporter struct{}
+
+func (b BytesExporter) Export(v interface{}) (string, error) {
+	s, _ := StringExporter{}.Export(v)
+	return fmt.Sprintf("[]byte(%s)", s), nil
+}
+
+func (b BytesExporter) Supports(v interface{}) bool {
+	_, ok := v.([]byte)
 	return ok
 }
 
