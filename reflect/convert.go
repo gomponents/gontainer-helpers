@@ -12,6 +12,7 @@ func newCannotCastErr(from, to reflect.Type) error {
 // Convert converts given value to given type whenever it is possible.
 // In opposition to built-in reflect package it allows to convert []interface{} to []type.
 // todo add comment about zero values
+// todo []interface{} => []type is possible, add []type => []interface{}
 func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
 	// it is required to avoid panic (reflect: call of reflect.Value.Type on zero Value)
 	// in case of the following code
