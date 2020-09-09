@@ -17,6 +17,9 @@ func set(strct reflect.Value, field string, val interface{}) error {
 		return fmt.Errorf("field `%s` does not exist", field)
 	}
 	var v reflect.Value
+	// it is required to avoid panic (reflect: call of reflect.Value.Type on zero Value)
+	// in case of the following code
+	// Set(&p, "val", nil)
 	if val == nil {
 		v = reflect.Zero(f.Type()) // required for nil
 	} else {

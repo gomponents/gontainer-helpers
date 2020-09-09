@@ -211,6 +211,13 @@ func TestMustCall(t *testing.T) {
 				input:  5,
 				output: "\x05",
 			},
+			"zero value": {
+				fn: func(v int) int {
+					return v
+				},
+				input:  nil,
+				output: 0,
+			},
 		}
 
 		for n, s := range scenarios {

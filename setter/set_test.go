@@ -80,12 +80,13 @@ func TestSet(t *testing.T) {
 			s.wallets,
 		)
 	})
-	t.Run("zero values (val = nil)", func(t *testing.T) {
+	t.Run("zero values", func(t *testing.T) { // val == nil
 		t.Run("interface{}", func(t *testing.T) {
+			var v interface{}
 			p := struct {
 				val interface{}
 			}{val: 5}
-			assert.NoError(t, Set(&p, "val", nil))
+			assert.NoError(t, Set(&p, "val", v))
 			assert.Nil(t, p.val)
 		})
 		t.Run("int", func(t *testing.T) {
