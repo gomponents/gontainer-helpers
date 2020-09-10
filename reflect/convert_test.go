@@ -8,17 +8,33 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	// todo
 	t.Run("Convert parameters", func(t *testing.T) {
-		//float64Val := float64(5)
+		float64Val := float64(5)
 
 		scenarios := map[string]struct {
 			input  interface{}
 			output interface{}
 			error  string
 		}{
-			"[]interface{} to []type": {
+			"[]interface{} to []int": {
 				input:  []interface{}{1, 2, 3},
+				output: []int{1, 2, 3},
+			},
+			"[]interface{} to []int (invalid)": {
+				input:  []interface{}{1, 2, 3, nil},
+				output: []int{},
+				error:  "cannot cast `[]interface {}` to `[]int`",
+			},
+			"[]int to []interface{}": {
+				input:  []int{1, 2, 3},
+				output: []interface{}{1, 2, 3},
+			},
+			"[]interface{} to []interface{}": {
+				input:  []interface{}{1, 2, 3},
+				output: []interface{}{1, 2, 3},
+			},
+			"[]int8 to []int": {
+				input:  []int8{1, 2, 3},
 				output: []int{1, 2, 3},
 			},
 			"[]struct{}{} to []type": {
@@ -30,56 +46,46 @@ func TestConvert(t *testing.T) {
 				input:  float64(math.Pi),
 				output: 3,
 			},
-			//"*float64 to *int": {
-			//	fn:    func(*int) {},
-			//	input: &float64Val,
-			//	error: "arg0: cannot cast `*float64` to `*int`",
-			//},
-			//"*float64 to *float32": {
-			//	fn:    func(*float32) {},
-			//	input: &float64Val,
-			//	error: "arg0: cannot cast `*float64` to `*float32`",
-			//},
-			//"int to float64": {
-			//	fn: func(v float64) float64 {
-			//		return v
-			//	},
-			//	input:  int(5),
-			//	output: float64(5),
-			//},
-			//"string to []byte": {
-			//	fn: func(v []byte) []byte {
-			//		return v
-			//	},
-			//	input:  "hello",
-			//	output: []byte("hello"),
-			//},
-			//"[]byte to string": {
-			//	fn: func(v string) string {
-			//		return v
-			//	},
-			//	input:  []byte("hello"),
-			//	output: "hello",
-			//},
-			//"string to int": { // cannot convert string to int
-			//	fn:    func(int) {},
-			//	input: "5",
-			//	error: "arg0: cannot cast `string` to `int`",
-			//},
-			//"int to string": { // but reverse conversion is possible, isn't worth to unify this behavior?
-			//	fn: func(v string) string {
-			//		return v
-			//	},
-			//	input:  5,
-			//	output: "\x05",
-			//},
-			//"zero value": {
-			//	fn: func(v int) int {
-			//		return v
-			//	},
-			//	input:  nil,
-			//	output: 0,
-			//},
+			"nil to int": {
+				input:  nil,
+				output: 0,
+				error:  "cannot cast `<nil>` to `int`",
+			},
+			"nil to *int": {
+				input:  nil,
+				output: (*int)(nil),
+			},
+			"*float64 to *int": {
+				input:  &float64Val,
+				output: (*int)(nil),
+				error:  "cannot cast `*float64` to `*int`",
+			},
+			"*float64 to *float32": {
+				input:  &float64Val,
+				output: (*float32)(nil),
+				error:  "cannot cast `*float64` to `*float32`",
+			},
+			"int to float64": {
+				input:  int(5),
+				output: float64(5),
+			},
+			"string to []byte": {
+				input:  "hello",
+				output: []byte("hello"),
+			},
+			"[]byte to string": {
+				input:  []byte("hello"),
+				output: "hello",
+			},
+			"string to int": { // cannot convert string to int
+				input:  "5",
+				output: int(5),
+				error:  "cannot cast `string` to `int`",
+			},
+			"int to string": { // but reverse conversion is possible, isn't worth to unify this behavior?
+				input:  5,
+				output: "\x05",
+			},
 		}
 
 		for n, s := range scenarios {

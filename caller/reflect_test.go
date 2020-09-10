@@ -2,7 +2,6 @@ package caller
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"testing"
 
@@ -141,8 +140,6 @@ func TestMustCall(t *testing.T) {
 	})
 
 	t.Run("Convert parameters", func(t *testing.T) {
-		float64Val := float64(5)
-
 		scenarios := map[string]struct {
 			fn     interface{}
 			input  interface{}
@@ -161,62 +158,12 @@ func TestMustCall(t *testing.T) {
 				input: []struct{}{},
 				error: "arg0: cannot cast `[]struct {}` to `[]int`",
 			},
-			"float64 to int": {
-				fn: func(v int) int {
-					return v
-				},
-				input:  float64(math.Pi),
-				output: 3,
-			},
-			"*float64 to *int": {
-				fn:    func(*int) {},
-				input: &float64Val,
-				error: "arg0: cannot cast `*float64` to `*int`",
-			},
-			"*float64 to *float32": {
-				fn:    func(*float32) {},
-				input: &float64Val,
-				error: "arg0: cannot cast `*float64` to `*float32`",
-			},
-			"int to float64": {
-				fn: func(v float64) float64 {
-					return v
-				},
-				input:  int(5),
-				output: float64(5),
-			},
-			"string to []byte": {
-				fn: func(v []byte) []byte {
-					return v
-				},
-				input:  "hello",
-				output: []byte("hello"),
-			},
-			"[]byte to string": {
-				fn: func(v string) string {
-					return v
-				},
-				input:  []byte("hello"),
-				output: "hello",
-			},
-			"string to int": { // cannot convert string to int
-				fn:    func(int) {},
-				input: "5",
-				error: "arg0: cannot cast `string` to `int`",
-			},
-			"int to string": { // but reverse conversion is possible, isn't worth to unify this behavior?
-				fn: func(v string) string {
-					return v
-				},
-				input:  5,
-				output: "\x05",
-			},
-			"zero value": {
-				fn: func(v int) int {
+			"nil to interface{}": {
+				fn: func(v interface{}) interface{} {
 					return v
 				},
 				input:  nil,
-				output: 0,
+				output: (interface{})(nil),
 			},
 		}
 
