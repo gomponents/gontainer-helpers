@@ -26,6 +26,10 @@ func TestConvert(t *testing.T) {
 				output: [][]int{{1, 2, 3}},
 				error:  "cannot cast `[][]interface {}` to `[][]int`: el0: cannot cast `[]interface {}` to `[]int`: el1: cannot cast `bool` to `int`",
 			},
+			"[][]int to [][]interface{}": {
+				input:  [][]int{{1, 2, 3}},
+				output: [][]interface{}{{1, 2, 3}},
+			},
 			"[][]uint to [][]int": {
 				input:  [][]uint{{1, 2, 3}},
 				output: [][]int{{1, 2, 3}},
@@ -91,6 +95,10 @@ func TestConvert(t *testing.T) {
 				input:  &float64Val,
 				output: (*float32)(nil),
 				error:  "cannot cast `*float64` to `*float32`",
+			},
+			"*float64 to *float64": {
+				input:  &float64Val,
+				output: &float64Val,
 			},
 			"int to float64": {
 				input:  int(5),
