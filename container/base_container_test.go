@@ -75,3 +75,12 @@ func TestBaseContainer_Get(t *testing.T) {
 		assert.Empty(t, container.circularDeps.chain)
 	})
 }
+
+func TestBaseContainer_RegisterDecorator(t *testing.T) {
+	c := NewBaseContainer(nil)
+	assert.Len(t, *c.decorators, 0)
+	c.RegisterDecorator(func(_ string, i interface{}) (interface{}, error) {
+		return i, nil
+	})
+	assert.Len(t, *c.decorators, 1)
+}

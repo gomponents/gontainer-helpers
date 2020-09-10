@@ -5,7 +5,8 @@ import (
 	"sort"
 )
 
-type Provider = func() (interface{}, error)
+type Provider func() (interface{}, error)
+type Decorator func(string, interface{}) (interface{}, error)
 
 type ServiceDefinition struct {
 	Provider   Provider
@@ -21,6 +22,7 @@ type metaServiceDefinition struct {
 type BaseContainer struct {
 	services     map[string]metaServiceDefinition
 	circularDeps *circularDeps
+	decorators   *[]Decorator
 }
 
 func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
@@ -33,9 +35,12 @@ func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
 		}
 	}
 
+	d := make([]Decorator, 0)
+
 	return &BaseContainer{
 		services:     meta,
 		circularDeps: newCircularDeps(),
+		decorators:   &d,
 	}
 }
 
@@ -84,12 +89,19 @@ func (b BaseContainer) Get(id string) (service interface{}, err error) {
 	}
 
 	service, err = serviceDef.definition.Provider()
-
 	if err != nil {
 		if finalErr, ok := err.(finalErr); ok {
 			return nil, finalErr
 		}
 		return nil, fmt.Errorf("cannot create service `%s`: %s", id, err.Error())
+	}
+
+	service, err = b.decorate(id, service)
+	if err != nil {
+		if finalErr, ok := err.(finalErr); ok {
+			return nil, finalErr
+		}
+		return nil, fmt.Errorf("cannot decorate service `%s`: %s", id, err.Error())
 	}
 
 	if !serviceDef.definition.Disposable {
@@ -123,4 +135,19 @@ func (b BaseContainer) GetAllServiceIDs() []string {
 	}
 	sort.Strings(r)
 	return r
+}
+
+func (b BaseContainer) RegisterDecorator(d Decorator) {
+	*b.decorators = append(*b.decorators, d)
+}
+
+func (b BaseContainer) decorate(id string, s interface{}) (r interface{}, err error) {
+	r = s
+	for _, d := range *b.decorators {
+		r, err = d(id, r)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
