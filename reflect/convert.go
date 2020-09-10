@@ -5,10 +5,6 @@ import (
 	"reflect"
 )
 
-func newCannotCastErr(from, to reflect.Type) error {
-	return fmt.Errorf("cannot cast `%s` to `%s`", from.String(), to.String())
-}
-
 func isNilable(k reflect.Kind) bool {
 	switch k {
 	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
@@ -36,7 +32,7 @@ func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
 
 	slice, ok := convertSlice(from, to)
 	if !ok {
-		return reflect.Value{}, newCannotCastErr(from.Type(), to)
+		return reflect.Value{}, fmt.Errorf("cannot cast `%s` to `%s`", from.String(), to.String())
 	}
 
 	return slice, nil
