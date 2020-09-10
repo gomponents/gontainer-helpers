@@ -279,7 +279,8 @@ func (p PrimitiveTypeSliceExporter) Supports(v interface{}) bool {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Float32,
-		reflect.Float64:
+		reflect.Float64,
+		reflect.String:
 		return true
 	}
 
