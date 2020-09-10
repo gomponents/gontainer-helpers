@@ -32,7 +32,7 @@ func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
 
 	slice, ok := convertSlice(from, to)
 	if !ok {
-		return reflect.Value{}, fmt.Errorf("cannot cast `%s` to `%s`", from.String(), to.String())
+		return reflect.Value{}, fmt.Errorf("cannot cast `%s` to `%s`", from.Type().String(), to.String())
 	}
 
 	return slice, nil
