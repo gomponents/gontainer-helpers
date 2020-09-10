@@ -30,52 +30,50 @@ func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
 		return from.Convert(to), nil
 	}
 
-	slice, ok := convertSlice(from, to)
-	if !ok {
+	if !isConvertibleSlice(from, to) {
 		return reflect.Value{}, fmt.Errorf("cannot cast `%s` to `%s`", from.Type().String(), to.String())
+	}
+
+	slice, err := convertSlice(from, to)
+	if err != nil {
+		return reflect.Value{}, fmt.Errorf("cannot cast `%s` to `%s`: %s", from.Type().String(), to.String(), err.Error())
 	}
 
 	return slice, nil
 }
 
-func convertSlice(from reflect.Value, to reflect.Type) (reflect.Value, bool) {
+func isConvertibleSlice(from reflect.Value, to reflect.Type) bool {
 	if from.Kind() != reflect.Slice || to.Kind() != reflect.Slice {
-		return reflect.Value{}, false
-	}
-
-	canCastSlice := func() bool {
-		if from.Type().Elem().Kind() == reflect.Interface || to.Elem().Kind() == reflect.Interface {
-			return true
-		}
-
-		if from.Type().Elem().ConvertibleTo(to.Elem()) {
-			return true
-		}
-
 		return false
 	}
 
-	if !canCastSlice() {
-		return reflect.Value{}, false
+	if from.Type().Elem().Kind() == reflect.Interface || to.Elem().Kind() == reflect.Interface {
+		return true
 	}
 
+	if from.Type().Elem().ConvertibleTo(to.Elem()) {
+		return true
+	}
+
+	return false
+}
+
+func convertSlice(from reflect.Value, to reflect.Type) (reflect.Value, error) {
 	cp := reflect.MakeSlice(to, 0, 0)
 	for i := 0; i < from.Len(); i++ {
 		item := from.Index(i)
 		for item.Kind() == reflect.Interface {
 			item = item.Elem()
 		}
-		if !item.IsValid() { // nil
-			if isNilable(to.Elem().Kind()) {
-				cp = reflect.Append(cp, reflect.Zero(to.Elem()))
-				continue
-			}
-			return reflect.Value{}, false
+		var currVal interface{} = nil
+		if item.IsValid() {
+			currVal = item.Interface()
 		}
-		if !item.Type().ConvertibleTo(to.Elem()) {
-			return reflect.Value{}, false
+		curr, err := Convert(currVal, to.Elem())
+		if err != nil {
+			return reflect.Value{}, fmt.Errorf("el%d: %s", i, err.Error())
 		}
-		cp = reflect.Append(cp, item.Convert(to.Elem()))
+		cp = reflect.Append(cp, curr)
 	}
-	return cp, true
+	return cp, nil
 }
