@@ -1,10 +1,11 @@
 package reflect
 
 import (
-	"github.com/stretchr/testify/assert"
 	"math"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConvert(t *testing.T) {
@@ -85,6 +86,10 @@ func TestConvert(t *testing.T) {
 			"int to string": { // but reverse conversion is possible, isn't worth to unify this behavior?
 				input:  5,
 				output: "\x05",
+			},
+			"nil to *interface{}": {
+				input:  nil,
+				output: (*interface{})(nil),
 			},
 		}
 
