@@ -38,6 +38,10 @@ func TestConvert(t *testing.T) {
 				input:  []int8{1, 2, 3},
 				output: []int{1, 2, 3},
 			},
+			"[]int to []int8": {
+				input:  []int{1, 2, 256},
+				output: []int8{1, 2, 0},
+			},
 			"[]struct{}{} to []type": {
 				input:  []struct{}{},
 				output: []int{},
