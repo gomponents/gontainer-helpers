@@ -31,7 +31,7 @@ func TestConvert(t *testing.T) {
 				output: []int{},
 				error:  "cannot cast `[]interface {}` to `[]int`",
 			},
-			"[]interface{} to []*int": {
+			"[]interface{} to []*int2": {
 				input:  []interface{}{nil, nil},
 				output: []*int{nil, nil},
 			},
