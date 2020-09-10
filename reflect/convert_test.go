@@ -1,7 +1,6 @@
 package reflect
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -10,10 +9,6 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	a := make([]interface{}, 1)
-	a[0] = &a
-	fmt.Println(a)
-
 	t.Run("Convert parameters", func(t *testing.T) {
 		float64Val := float64(5)
 
@@ -22,6 +17,19 @@ func TestConvert(t *testing.T) {
 			output interface{}
 			error  string
 		}{
+			"[][]interface{} to [][]int": {
+				input:  [][]interface{}{{1, 2, 3}},
+				output: [][]int{{1, 2, 3}},
+			},
+			"[][]interface{} to [][]int (invalid)": {
+				input:  [][]interface{}{{1, false, 3}},
+				output: [][]int{{1, 2, 3}},
+				error:  "cannot cast `[][]interface {}` to `[][]int`: el0: cannot cast `[]interface {}` to `[]int`: el1: cannot cast `bool` to `int`",
+			},
+			"[][]uint to [][]int": {
+				input:  [][]uint{{1, 2, 3}},
+				output: [][]int{{1, 2, 3}},
+			},
 			"[]interface{} to []int": {
 				input:  []interface{}{1, 2, 3},
 				output: []int{1, 2, 3},

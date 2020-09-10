@@ -30,7 +30,7 @@ func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
 		return from.Convert(to), nil
 	}
 
-	if !isConvertibleSlice(from, to) {
+	if !isConvertibleSlice(from.Type(), to) {
 		return reflect.Value{}, fmt.Errorf("cannot cast `%s` to `%s`", from.Type().String(), to.String())
 	}
 
@@ -42,16 +42,20 @@ func Convert(value interface{}, to reflect.Type) (reflect.Value, error) {
 	return slice, nil
 }
 
-func isConvertibleSlice(from reflect.Value, to reflect.Type) bool {
+func isConvertibleSlice(from reflect.Type, to reflect.Type) bool {
 	if from.Kind() != reflect.Slice || to.Kind() != reflect.Slice {
 		return false
 	}
 
-	if from.Type().Elem().Kind() == reflect.Interface || to.Elem().Kind() == reflect.Interface {
+	if from.Elem().Kind() == reflect.Interface || to.Elem().Kind() == reflect.Interface {
 		return true
 	}
 
-	if from.Type().Elem().ConvertibleTo(to.Elem()) {
+	if from.Elem().ConvertibleTo(to.Elem()) {
+		return true
+	}
+
+	if isConvertibleSlice(from.Elem(), to.Elem()) {
 		return true
 	}
 
