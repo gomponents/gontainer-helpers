@@ -80,42 +80,6 @@ func TestSet(t *testing.T) {
 			s.wallets,
 		)
 	})
-	t.Run("zero values", func(t *testing.T) { // val == nil
-		t.Run("interface{}", func(t *testing.T) {
-			var v interface{}
-			p := struct {
-				val interface{}
-			}{val: 5}
-			assert.NoError(t, Set(&p, "val", v))
-			assert.Nil(t, p.val)
-		})
-		t.Run("int", func(t *testing.T) {
-			p := struct {
-				val int
-			}{val: 5}
-			assert.NoError(t, Set(&p, "val", nil))
-			assert.Equal(t, 0, p.val)
-		})
-		t.Run("struct", func(t *testing.T) {
-			p := struct {
-				val person
-			}{
-				val: person{
-					Name: "Mary Jane",
-					age:  35,
-				},
-			}
-			assert.NoError(t, Set(&p, "val", nil))
-			assert.Equal(t, person{}, p.val)
-		})
-		t.Run("unexported type of field", func(t *testing.T) {
-			p := person{
-				wallet: wallet{amount: 300},
-			}
-			assert.NoError(t, Set(&p, "wallet", nil))
-			assert.Equal(t, wallet{}, p.wallet)
-		})
-	})
 	t.Run("Given errors", func(t *testing.T) {
 		t.Run("Field does not exist", func(t *testing.T) {
 			p := person{}
