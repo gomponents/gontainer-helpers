@@ -12,6 +12,12 @@ type BaseParamContainer struct {
 
 type ParamProvider func() interface{}
 
+// todo
+type ParamDefinition struct {
+	Provider   Provider
+	Disposable bool
+}
+
 func NewBaseParamContainer(providers map[string]ParamProvider) *BaseParamContainer {
 	if providers == nil {
 		providers = make(map[string]ParamProvider)
