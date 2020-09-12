@@ -9,7 +9,8 @@ type Provider func() (interface{}, error)
 type Decorator func(string, interface{}) (interface{}, error)
 
 type ServiceDefinition struct {
-	Provider   Provider
+	Provider Provider
+	// Disposable says whether object should be cached or no.
 	Disposable bool
 }
 
