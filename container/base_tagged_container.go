@@ -6,11 +6,17 @@ import (
 )
 
 type BaseTaggedContainer struct {
-	container Container
-	mapping   map[string]map[string]int // mapping[tag][serviceID] = priority
+	container interface {
+		Get(string) (interface{}, error)
+	}
+	mapping map[string]map[string]int // mapping[tag][serviceID] = priority
 }
 
-func NewBaseTaggedContainer(container Container) *BaseTaggedContainer {
+func NewBaseTaggedContainer(
+	container interface {
+		Get(string) (interface{}, error)
+	},
+) *BaseTaggedContainer {
 	return &BaseTaggedContainer{
 		container: container,
 		mapping:   make(map[string]map[string]int),
