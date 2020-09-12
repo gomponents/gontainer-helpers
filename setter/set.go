@@ -58,7 +58,7 @@ func Set(strct interface{}, field string, val interface{}) error {
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("`%T`.`%s`: %s", strct, field, err.Error())
+		return fmt.Errorf("set `%T`.`%s`: %s", strct, field, err.Error())
 	}
 
 	switch {
