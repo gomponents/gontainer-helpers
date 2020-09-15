@@ -1,10 +1,10 @@
 package container
 
-type Container interface {
-	Get(string) (interface{}, error)
-	MustGet(string) interface{}
-	Has(string) bool
-}
+//type Container interface {
+//	Get(string) (interface{}, error)
+//	MustGet(string) interface{}
+//	Has(string) bool
+//}
 
 type TaggedContainer interface {
 	GetByTag(string) ([]interface{}, error)

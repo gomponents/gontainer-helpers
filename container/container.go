@@ -20,13 +20,13 @@ type metaServiceDefinition struct {
 	created    bool
 }
 
-type BaseContainer struct {
+type Container struct {
 	services     map[string]metaServiceDefinition
 	circularDeps *circularDeps
 	decorators   *[]Decorator
 }
 
-func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
+func NewContainer(definitions map[string]ServiceDefinition) *Container {
 	meta := make(map[string]metaServiceDefinition)
 	for n, v := range definitions {
 		meta[n] = metaServiceDefinition{
@@ -38,7 +38,7 @@ func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
 
 	d := make([]Decorator, 0)
 
-	return &BaseContainer{
+	return &Container{
 		services:     meta,
 		circularDeps: newCircularDeps(),
 		decorators:   &d,
@@ -46,7 +46,7 @@ func NewBaseContainer(definitions map[string]ServiceDefinition) *BaseContainer {
 }
 
 // Register registers new service, returns error in when service already exists
-func (b BaseContainer) Register(id string, s ServiceDefinition) error {
+func (b Container) Register(id string, s ServiceDefinition) error {
 	if b.Has(id) {
 		return fmt.Errorf("service `%s` is already registered", id)
 	}
@@ -60,7 +60,10 @@ func (b BaseContainer) Register(id string, s ServiceDefinition) error {
 }
 
 // Override overrides or registers service
-func (b BaseContainer) Override(id string, s ServiceDefinition) {
+func (b Container) Override(id string, s ServiceDefinition) {
+	//b.providersMutex.Lock()
+	//defer b.providersMutex.Unlock()
+
 	b.services[id] = metaServiceDefinition{
 		definition: s,
 		service:    nil,
@@ -68,7 +71,7 @@ func (b BaseContainer) Override(id string, s ServiceDefinition) {
 	}
 }
 
-func (b BaseContainer) Get(id string) (service interface{}, err error) {
+func (b Container) Get(id string) (service interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("cannot create service `%s`: %s", id, r)
@@ -114,7 +117,7 @@ func (b BaseContainer) Get(id string) (service interface{}, err error) {
 	return service, nil
 }
 
-func (b BaseContainer) MustGet(id string) interface{} {
+func (b Container) MustGet(id string) interface{} {
 	r, e := b.Get(id)
 
 	if e != nil {
@@ -124,12 +127,12 @@ func (b BaseContainer) MustGet(id string) interface{} {
 	return r
 }
 
-func (b BaseContainer) Has(id string) bool {
+func (b Container) Has(id string) bool {
 	_, ok := b.services[id]
 	return ok
 }
 
-func (b BaseContainer) GetAllServiceIDs() []string {
+func (b Container) GetAllServiceIDs() []string {
 	r := make([]string, 0)
 	for n, _ := range b.services {
 		r = append(r, n)
@@ -138,11 +141,11 @@ func (b BaseContainer) GetAllServiceIDs() []string {
 	return r
 }
 
-func (b BaseContainer) RegisterDecorator(d Decorator) {
+func (b Container) RegisterDecorator(d Decorator) {
 	*b.decorators = append(*b.decorators, d)
 }
 
-func (b BaseContainer) decorate(id string, s interface{}) (r interface{}, err error) {
+func (b Container) decorate(id string, s interface{}) (r interface{}, err error) {
 	r = s
 	for _, d := range *b.decorators {
 		r, err = d(id, r)
