@@ -9,7 +9,7 @@ import (
 
 func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 	t.Run("Given scenario", func(t *testing.T) {
-		container := NewBaseContainer(map[string]ServiceDefinition{
+		container := NewContainer(map[string]ServiceDefinition{
 			"foo": {
 				Provider: func() (interface{}, error) {
 					return "foo", nil
@@ -51,7 +51,7 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 
 	t.Run("Given errors", func(t *testing.T) {
 		t.Run("Service already tagged", func(t *testing.T) {
-			c := NewBaseTaggedContainer(NewBaseContainer(nil))
+			c := NewBaseTaggedContainer(NewContainer(nil))
 			tagSvc := func() error {
 				return c.TagService("cmd", "commandHelp", 100)
 			}
@@ -70,7 +70,7 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 }
 
 func TestBaseTaggedContainer_IsTaggedBy(t *testing.T) {
-	base := NewBaseContainer(map[string]ServiceDefinition{
+	base := NewContainer(map[string]ServiceDefinition{
 		"userRepository": {
 			Provider: func() (interface{}, error) {
 				return struct{}{}, nil
