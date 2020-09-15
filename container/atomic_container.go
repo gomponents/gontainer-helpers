@@ -4,14 +4,22 @@ import (
 	"sync"
 )
 
-type AtomicContainer struct {
-	*Container
-	mutex *sync.Mutex
+type container interface {
+	Get(string) (interface{}, error)
+	Register(string, ServiceDefinition) error
+	Override(string, ServiceDefinition)
+	Has(string) bool
+	GetAllServiceIDs() []string
 }
 
-func NewAtomicContainer(container *Container) *AtomicContainer {
+type AtomicContainer struct {
+	container container
+	mutex     *sync.Mutex
+}
+
+func NewAtomicContainer(c container) *AtomicContainer {
 	return &AtomicContainer{
-		Container: container,
+		container: c,
 		mutex:     &sync.Mutex{},
 	}
 }
@@ -19,29 +27,29 @@ func NewAtomicContainer(container *Container) *AtomicContainer {
 func (a AtomicContainer) Get(id string) (interface{}, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	return a.Container.Get(id)
+	return a.container.Get(id)
 }
 
 func (a AtomicContainer) Register(id string, s ServiceDefinition) error {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	return a.Register(id, s)
+	return a.container.Register(id, s)
 }
 
 func (a AtomicContainer) Override(id string, s ServiceDefinition) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	a.Container.Override(id, s)
+	a.container.Override(id, s)
 }
 
 func (a AtomicContainer) Has(id string) bool {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	return a.Container.Has(id)
+	return a.container.Has(id)
 }
 
 func (a AtomicContainer) GetAllServiceIDs() []string {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	return a.Container.GetAllServiceIDs()
+	return a.container.GetAllServiceIDs()
 }

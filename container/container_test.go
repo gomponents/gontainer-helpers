@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-func TestBaseContainer_Get(t *testing.T) {
+func TestContainer_Get(t *testing.T) {
 	t.Run("Given circular dependency", func(t *testing.T) {
-		container := NewBaseContainer(nil)
+		container := NewContainer(nil)
 		container.Override("company", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
 				emp, err := container.Get("employer")
@@ -76,8 +76,8 @@ func TestBaseContainer_Get(t *testing.T) {
 	})
 }
 
-func TestBaseContainer_RegisterDecorator(t *testing.T) {
-	c := NewBaseContainer(nil)
+func TestContainer_RegisterDecorator(t *testing.T) {
+	c := NewContainer(nil)
 	assert.Len(t, *c.decorators, 0)
 	c.RegisterDecorator(func(_ string, i interface{}) (interface{}, error) {
 		return i, nil

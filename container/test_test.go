@@ -1,5 +1,7 @@
 package container
 
+import "sync"
+
 type mockContainer struct {
 	has     bool
 	service interface{}
@@ -10,14 +12,18 @@ func (m mockContainer) Get(string) (interface{}, error) {
 	return m.service, m.error
 }
 
-func (m mockContainer) MustGet(i string) interface{} {
-	s, err := m.Get(i)
-	if err != nil {
-		panic(err)
-	}
-	return s
+type goroutineGroup struct {
+	wg sync.WaitGroup
 }
 
-func (m mockContainer) Has(string) bool {
-	return m.has
+func (g *goroutineGroup) Go(f func()) {
+	g.wg.Add(1)
+	go func() {
+		f()
+		g.wg.Done()
+	}()
+}
+
+func (g *goroutineGroup) Wait() {
+	g.wg.Wait()
 }

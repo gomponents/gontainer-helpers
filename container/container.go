@@ -61,9 +61,6 @@ func (c Container) Register(id string, s ServiceDefinition) error {
 
 // Override overrides or registers service
 func (c Container) Override(id string, s ServiceDefinition) {
-	//c.providersMutex.Lock()
-	//defer c.providersMutex.Unlock()
-
 	c.services[id] = metaServiceDefinition{
 		definition: s,
 		service:    nil,
