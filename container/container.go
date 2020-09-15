@@ -46,12 +46,12 @@ func NewContainer(definitions map[string]ServiceDefinition) *Container {
 }
 
 // Register registers new service, returns error in when service already exists
-func (b Container) Register(id string, s ServiceDefinition) error {
-	if b.Has(id) {
+func (c Container) Register(id string, s ServiceDefinition) error {
+	if c.Has(id) {
 		return fmt.Errorf("service `%s` is already registered", id)
 	}
 
-	b.services[id] = metaServiceDefinition{
+	c.services[id] = metaServiceDefinition{
 		definition: s,
 		service:    nil,
 		created:    false,
@@ -60,34 +60,34 @@ func (b Container) Register(id string, s ServiceDefinition) error {
 }
 
 // Override overrides or registers service
-func (b Container) Override(id string, s ServiceDefinition) {
-	//b.providersMutex.Lock()
-	//defer b.providersMutex.Unlock()
+func (c Container) Override(id string, s ServiceDefinition) {
+	//c.providersMutex.Lock()
+	//defer c.providersMutex.Unlock()
 
-	b.services[id] = metaServiceDefinition{
+	c.services[id] = metaServiceDefinition{
 		definition: s,
 		service:    nil,
 		created:    false,
 	}
 }
 
-func (b Container) Get(id string) (service interface{}, err error) {
+func (c Container) Get(id string) (service interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("cannot create service `%s`: %s", id, r)
 		}
 	}()
 
-	defer b.circularDeps.stop()
-	if deps := b.circularDeps.start(id); deps != nil {
+	defer c.circularDeps.stop()
+	if deps := c.circularDeps.start(id); deps != nil {
 		return nil, newCircularDepError(deps)
 	}
 
-	if !b.Has(id) {
+	if !c.Has(id) {
 		return nil, fmt.Errorf("service `%s` does not exist", id)
 	}
 
-	serviceDef := b.services[id]
+	serviceDef := c.services[id]
 	if serviceDef.created {
 		return serviceDef.service, nil
 	}
@@ -100,7 +100,7 @@ func (b Container) Get(id string) (service interface{}, err error) {
 		return nil, fmt.Errorf("cannot create service `%s`: %s", id, err.Error())
 	}
 
-	service, err = b.decorate(id, service)
+	service, err = c.decorate(id, service)
 	if err != nil {
 		if finalErr, ok := err.(finalErr); ok {
 			return nil, finalErr
@@ -111,14 +111,14 @@ func (b Container) Get(id string) (service interface{}, err error) {
 	if !serviceDef.definition.Disposable {
 		serviceDef.created = true
 		serviceDef.service = service
-		b.services[id] = serviceDef
+		c.services[id] = serviceDef
 	}
 
 	return service, nil
 }
 
-func (b Container) MustGet(id string) interface{} {
-	r, e := b.Get(id)
+func (c Container) MustGet(id string) interface{} {
+	r, e := c.Get(id)
 
 	if e != nil {
 		panic(e)
@@ -127,27 +127,27 @@ func (b Container) MustGet(id string) interface{} {
 	return r
 }
 
-func (b Container) Has(id string) bool {
-	_, ok := b.services[id]
+func (c Container) Has(id string) bool {
+	_, ok := c.services[id]
 	return ok
 }
 
-func (b Container) GetAllServiceIDs() []string {
+func (c Container) GetAllServiceIDs() []string {
 	r := make([]string, 0)
-	for n, _ := range b.services {
+	for n, _ := range c.services {
 		r = append(r, n)
 	}
 	sort.Strings(r)
 	return r
 }
 
-func (b Container) RegisterDecorator(d Decorator) {
-	*b.decorators = append(*b.decorators, d)
+func (c Container) RegisterDecorator(d Decorator) {
+	*c.decorators = append(*c.decorators, d)
 }
 
-func (b Container) decorate(id string, s interface{}) (r interface{}, err error) {
+func (c Container) decorate(id string, s interface{}) (r interface{}, err error) {
 	r = s
-	for _, d := range *b.decorators {
+	for _, d := range *c.decorators {
 		r, err = d(id, r)
 		if err != nil {
 			return
