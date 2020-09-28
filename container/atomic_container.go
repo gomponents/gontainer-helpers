@@ -16,7 +16,7 @@ type container interface {
 
 type AtomicContainer struct {
 	container container
-	mutex     *sync.Mutex
+	mutex     sync.Locker
 }
 
 func NewAtomicContainer(c container) *AtomicContainer {

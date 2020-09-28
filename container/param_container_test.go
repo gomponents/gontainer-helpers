@@ -6,24 +6,27 @@ import (
 	"testing"
 )
 
-func TestBaseParamContainer_GetParam(t *testing.T) {
+func TestParamContainer_GetParam(t *testing.T) {
 	t.Run("Given errors", func(t *testing.T) {
 		scenarios := []struct {
-			container *BaseParamContainer
+			container *ParamContainer
 			id        string
 			error     string
 		}{
 			{
-				container: NewBaseParamContainer(map[string]ParamProvider{
-					"db.host": func() interface{} {
-						panic("todo")
+				container: NewParamContainer(map[string]ParamDefinition{
+					"db.host": {
+						Provider: func() interface{} {
+							panic("todo")
+						},
+						Disposable: false,
 					},
 				}),
 				id:    "db.host",
 				error: "cannot get parameter `db.host`: todo",
 			},
 			{
-				container: NewBaseParamContainer(nil),
+				container: NewParamContainer(nil),
 				id:        "db.host",
 				error:     "parameter `db.host` does not exist",
 			},

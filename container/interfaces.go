@@ -11,8 +11,8 @@ type TaggedContainer interface {
 	MustGetByTag(string) []interface{}
 }
 
-type ParamContainer interface {
-	GetParam(string) (interface{}, error)
-	MustGetParam(string) interface{}
-	HasParam(string) bool
-}
+//type ParamContainer interface {
+//	GetParam(string) (interface{}, error)
+//	MustGetParam(string) interface{}
+//	HasParam(string) bool
+//}
