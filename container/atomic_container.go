@@ -6,10 +6,12 @@ import (
 
 type container interface {
 	Get(string) (interface{}, error)
+	MustGet(string) interface{}
 	Register(string, ServiceDefinition) error
 	Override(string, ServiceDefinition)
 	Has(string) bool
 	GetAllServiceIDs() []string
+	RegisterDecorator(Decorator)
 }
 
 type AtomicContainer struct {
@@ -52,4 +54,16 @@ func (a AtomicContainer) GetAllServiceIDs() []string {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	return a.container.GetAllServiceIDs()
+}
+
+func (a AtomicContainer) MustGet(id string) interface{} {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	return a.container.MustGet(id)
+}
+
+func (a AtomicContainer) RegisterDecorator(d Decorator) {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	a.container.RegisterDecorator(d)
 }
