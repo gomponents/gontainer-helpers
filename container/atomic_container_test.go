@@ -9,7 +9,11 @@ import (
 )
 
 func TestNewAtomicContainer(t *testing.T) {
-	// todo
+	base := NewContainer(nil)
+	c := NewAtomicContainer(base)
+
+	assert.Same(t, base, c.container)
+	assert.NotEmpty(t, c.mutex)
 }
 
 func TestAtomicContainer_Concurrency(t *testing.T) {
