@@ -6,4 +6,5 @@ type paramContainer interface {
 	RegisterParam(string, ParamDefinition) error
 	OverrideParam(string, ParamDefinition)
 	HasParam(string) bool
+	GetAllParamIDs() []string
 }

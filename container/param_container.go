@@ -2,6 +2,7 @@ package container
 
 import (
 	"fmt"
+	"sort"
 )
 
 type ParamContainer struct {
@@ -107,4 +108,13 @@ func (b ParamContainer) MustGetParam(id string) interface{} {
 func (b ParamContainer) HasParam(id string) bool {
 	_, ok := b.params[id]
 	return ok
+}
+
+func (b ParamContainer) GetAllParamIDs() []string {
+	r := make([]string, 0)
+	for n, _ := range b.params {
+		r = append(r, n)
+	}
+	sort.Strings(r)
+	return r
 }
