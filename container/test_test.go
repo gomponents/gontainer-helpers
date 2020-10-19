@@ -1,6 +1,8 @@
 package container
 
-import "sync"
+import (
+	"sync"
+)
 
 type mockContainer struct {
 	has     bool
