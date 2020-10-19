@@ -115,7 +115,11 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 				defer func() {
 					r := recover()
 					if r != nil {
-						assert.Equal(t, fmt.Sprintf("service `%s` does not exist", id), fmt.Sprintf("%s", r))
+						assert.Equal(
+							t,
+							fmt.Sprintf("service `%s` does not exist", id),
+							fmt.Sprintf("%s", r),
+						)
 					}
 				}()
 				c.MustGet(id)
