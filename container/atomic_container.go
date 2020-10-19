@@ -16,54 +16,54 @@ type container interface {
 
 type AtomicContainer struct {
 	container container
-	mutex     sync.Locker
+	locker    sync.Locker
 }
 
 func NewAtomicContainer(c container) *AtomicContainer {
 	return &AtomicContainer{
 		container: c,
-		mutex:     &sync.Mutex{},
+		locker:    &sync.Mutex{},
 	}
 }
 
 func (a AtomicContainer) Get(id string) (interface{}, error) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	return a.container.Get(id)
 }
 
 func (a AtomicContainer) Register(id string, s ServiceDefinition) error {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	return a.container.Register(id, s)
 }
 
 func (a AtomicContainer) Override(id string, s ServiceDefinition) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	a.container.Override(id, s)
 }
 
 func (a AtomicContainer) Has(id string) bool {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	return a.container.Has(id)
 }
 
 func (a AtomicContainer) GetAllServiceIDs() []string {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	return a.container.GetAllServiceIDs()
 }
 
 func (a AtomicContainer) MustGet(id string) interface{} {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	return a.container.MustGet(id)
 }
 
 func (a AtomicContainer) RegisterDecorator(d Decorator) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.locker.Lock()
+	defer a.locker.Unlock()
 	a.container.RegisterDecorator(d)
 }

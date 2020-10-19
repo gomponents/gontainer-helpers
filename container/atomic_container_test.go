@@ -13,7 +13,7 @@ func TestNewAtomicContainer(t *testing.T) {
 	c := NewAtomicContainer(base)
 
 	assert.Same(t, base, c.container)
-	assert.NotNil(t, c.mutex)
+	assert.NotNil(t, c.locker)
 }
 
 func TestAtomicContainer_Concurrency(t *testing.T) {
