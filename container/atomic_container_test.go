@@ -188,6 +188,15 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 			id := fmt.Sprintf("svc-%d", i)
 
 			g.Go(func() {
+				c.Override(id, ServiceDefinition{
+					Provider: func() (interface{}, error) {
+						return nil, nil
+					},
+					Disposable: false,
+				})
+			})
+
+			g.Go(func() {
 				_, _ = c.Get(id)
 			})
 
@@ -199,6 +208,12 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					}
 				}()
 				c.MustGet(id)
+			})
+
+			g.Go(func() {
+				c.RegisterDecorator(func(_ string, svc interface{}) (interface{}, error) {
+					return svc, nil
+				})
 			})
 		}
 	})
