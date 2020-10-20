@@ -5,25 +5,25 @@ import (
 	"sort"
 )
 
-type BaseTaggedContainer struct {
+type TaggedContainer struct {
 	container interface {
 		Get(string) (interface{}, error)
 	}
 	mapping map[string]map[string]int // mapping[tag][serviceID] = priority
 }
 
-func NewBaseTaggedContainer(
+func NewTaggedContainer(
 	container interface {
 		Get(string) (interface{}, error)
 	},
-) *BaseTaggedContainer {
-	return &BaseTaggedContainer{
+) *TaggedContainer {
+	return &TaggedContainer{
 		container: container,
 		mapping:   make(map[string]map[string]int),
 	}
 }
 
-func (b BaseTaggedContainer) GetByTag(tag string) ([]interface{}, error) {
+func (b TaggedContainer) GetByTag(tag string) ([]interface{}, error) {
 	svcs := make([]struct {
 		id       string
 		priority int
@@ -57,7 +57,7 @@ func (b BaseTaggedContainer) GetByTag(tag string) ([]interface{}, error) {
 	return result, nil
 }
 
-func (b BaseTaggedContainer) MustGetByTag(tag string) []interface{} {
+func (b TaggedContainer) MustGetByTag(tag string) []interface{} {
 	result, err := b.GetByTag(tag)
 	if err != nil {
 		panic(err.Error())
@@ -65,7 +65,7 @@ func (b BaseTaggedContainer) MustGetByTag(tag string) []interface{} {
 	return result
 }
 
-func (b BaseTaggedContainer) TagService(id string, tag string, priority int) error {
+func (b TaggedContainer) TagService(id string, tag string, priority int) error {
 	if _, ok := b.mapping[tag]; !ok {
 		b.mapping[tag] = make(map[string]int)
 	}
@@ -79,7 +79,7 @@ func (b BaseTaggedContainer) TagService(id string, tag string, priority int) err
 	return nil
 }
 
-func (b BaseTaggedContainer) OverrideTagService(id string, tag string, priority int) {
+func (b TaggedContainer) OverrideTagService(id string, tag string, priority int) {
 	if _, ok := b.mapping[tag]; !ok {
 		b.mapping[tag] = make(map[string]int)
 	}
@@ -87,7 +87,7 @@ func (b BaseTaggedContainer) OverrideTagService(id string, tag string, priority 
 	b.mapping[tag][id] = priority
 }
 
-func (b BaseTaggedContainer) IsTaggedBy(id string, tag string) bool {
+func (b TaggedContainer) IsTaggedBy(id string, tag string) bool {
 	_, ok := b.mapping[tag][id]
 	return ok
 }

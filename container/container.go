@@ -76,7 +76,7 @@ func (c Container) Get(id string) (service interface{}, err error) {
 	}()
 
 	defer c.circularDeps.stop()
-	if deps := c.circularDeps.start(id); deps != nil {
+	if deps := c.circularDeps.start(id); len(deps) != 0 {
 		return nil, newCircularDepError(deps)
 	}
 

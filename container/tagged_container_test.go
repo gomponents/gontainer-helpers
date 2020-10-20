@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBaseTaggedContainer_GetByTag(t *testing.T) {
+func TestTaggedContainer_GetByTag(t *testing.T) {
 	t.Run("Given scenario", func(t *testing.T) {
 		container := NewContainer(map[string]ServiceDefinition{
 			"foo": {
@@ -27,7 +27,7 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 			},
 		})
 
-		tagged := NewBaseTaggedContainer(container)
+		tagged := NewTaggedContainer(container)
 		assert.NoError(t, tagged.TagService("foobar", "foos", 300))
 		assert.NoError(t, tagged.TagService("foo", "foos", 30))
 		assert.NoError(t, tagged.TagService("bar", "foos", 500))
@@ -51,7 +51,7 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 
 	t.Run("Given errors", func(t *testing.T) {
 		t.Run("Service already tagged", func(t *testing.T) {
-			c := NewBaseTaggedContainer(NewContainer(nil))
+			c := NewTaggedContainer(NewContainer(nil))
 			tagSvc := func() error {
 				return c.TagService("cmd", "commandHelp", 100)
 			}
@@ -59,7 +59,7 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 			assert.EqualError(t, tagSvc(), "service `cmd` is already tagged as `commandHelp`")
 		})
 		t.Run("Parent container returns error", func(t *testing.T) {
-			c := NewBaseTaggedContainer(mockContainer{
+			c := NewTaggedContainer(mockContainer{
 				error: fmt.Errorf("service does not exist"),
 			})
 			c.OverrideTagService("mysql", "db", 0)
@@ -69,7 +69,7 @@ func TestBaseTaggedContainer_GetByTag(t *testing.T) {
 	})
 }
 
-func TestBaseTaggedContainer_IsTaggedBy(t *testing.T) {
+func TestTaggedContainer_IsTaggedBy(t *testing.T) {
 	base := NewContainer(map[string]ServiceDefinition{
 		"userRepository": {
 			Provider: func() (interface{}, error) {
@@ -82,7 +82,7 @@ func TestBaseTaggedContainer_IsTaggedBy(t *testing.T) {
 			},
 		},
 	})
-	tagged := NewBaseTaggedContainer(base)
+	tagged := NewTaggedContainer(base)
 	tagged.OverrideTagService("userRepository", "repo", 0)
 	tagged.OverrideTagService("productRepository", "repo", 0)
 
@@ -91,10 +91,10 @@ func TestBaseTaggedContainer_IsTaggedBy(t *testing.T) {
 	assert.False(t, tagged.IsTaggedBy("userRepository", "db"))
 }
 
-func TestBaseTaggedContainer_MustGetByTag(t *testing.T) {
+func TestTaggedContainer_MustGetByTag(t *testing.T) {
 	t.Run("Given success", func(t *testing.T) {
 		db := struct{}{}
-		c := NewBaseTaggedContainer(mockContainer{
+		c := NewTaggedContainer(mockContainer{
 			service: db,
 		})
 		c.OverrideTagService("mysql", "db", 0)
@@ -105,7 +105,7 @@ func TestBaseTaggedContainer_MustGetByTag(t *testing.T) {
 			assert.Equal(t, "cannot get services by tag `db`: service `mysql` does not exists", recover())
 		}()
 
-		c := NewBaseTaggedContainer(mockContainer{
+		c := NewTaggedContainer(mockContainer{
 			error: fmt.Errorf("service `mysql` does not exists"),
 		})
 		c.OverrideTagService("mysql", "db", 0)

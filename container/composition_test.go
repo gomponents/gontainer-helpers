@@ -67,7 +67,7 @@ func TestComposition(t *testing.T) {
 			t,
 			Container{},
 			ParamContainer{},
-			BaseTaggedContainer{},
+			TaggedContainer{},
 		)
 	})
 	t.Run("No ambiguous methods in atomic structs", func(t *testing.T) {

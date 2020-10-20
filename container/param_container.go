@@ -48,7 +48,7 @@ func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 	}()
 
 	defer b.circularDeps.stop()
-	if deps := b.circularDeps.start(id); deps != nil {
+	if deps := b.circularDeps.start(id); len(deps) != 0 {
 		return nil, newCircularDepError(deps)
 	}
 
