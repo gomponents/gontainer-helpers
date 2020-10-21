@@ -72,6 +72,7 @@ func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 	if !paramDef.definition.Disposable {
 		paramDef.created = true
 		paramDef.param = param
+		b.params[id] = paramDef
 	}
 
 	return param, nil
