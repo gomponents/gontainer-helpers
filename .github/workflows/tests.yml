@@ -26,10 +26,13 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Test
-      run: go test -coverprofile=coverage.out ./...
+      run: make tests-unit
 
     - name: Test coverage
-      run: go tool cover -func=coverage.out
+      run: make code-coverage
+
+    - name: Composed container
+      run: make composed-container
 
     - name: Send coverage
       uses: shogo82148/actions-goveralls@v1
