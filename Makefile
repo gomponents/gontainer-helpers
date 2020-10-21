@@ -1,5 +1,5 @@
 tests-unit:
-	go test -coverprofile=coverage.out ./...
+	go test -race -coverprofile=coverage.out ./...
 
 code-coverage:
 	go tool cover -func=coverage.out
