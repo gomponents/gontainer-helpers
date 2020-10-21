@@ -17,8 +17,11 @@ type AtomicTaggedContainer struct {
 	locker    sync.Locker
 }
 
-func NewAtomicTaggedContainer(container taggedContainer, locker sync.Locker) *AtomicTaggedContainer {
-	return &AtomicTaggedContainer{container: container, locker: locker}
+func NewAtomicTaggedContainer(container taggedContainer) *AtomicTaggedContainer {
+	return &AtomicTaggedContainer{
+		container: container,
+		locker:    &sync.Mutex{},
+	}
 }
 
 func (a AtomicTaggedContainer) GetByTag(id string) ([]interface{}, error) {
