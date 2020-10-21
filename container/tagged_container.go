@@ -60,7 +60,7 @@ func (b TaggedContainer) GetByTag(tag string) ([]interface{}, error) {
 func (b TaggedContainer) MustGetByTag(tag string) []interface{} {
 	result, err := b.GetByTag(tag)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	return result
 }

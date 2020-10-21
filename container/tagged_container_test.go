@@ -102,7 +102,15 @@ func TestTaggedContainer_MustGetByTag(t *testing.T) {
 	})
 	t.Run("Given error", func(t *testing.T) {
 		defer func() {
-			assert.Equal(t, "cannot get services by tag `db`: service `mysql` does not exists", recover())
+			r := recover()
+			if !assert.Implements(t, (*error)(nil), r) {
+				return
+			}
+			assert.EqualError(
+				t,
+				r.(error),
+				"cannot get services by tag `db`: service `mysql` does not exists",
+			)
 		}()
 
 		c := NewTaggedContainer(mockContainer{
