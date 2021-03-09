@@ -31,7 +31,7 @@ func TestSet(t *testing.T) {
 		assert.Equal(t, "brown", p.color)
 	})
 	t.Run("var a interface{}", func(t *testing.T) {
-		t.Run("&struct{}", func(t *testing.T) {
+		t.Run("*struct{}", func(t *testing.T) {
 			const color = "red"
 			p := struct {
 				color string
@@ -41,7 +41,7 @@ func TestSet(t *testing.T) {
 			assert.NoError(t, Set(obj, "color", color))
 			assert.Equal(t, color, p.color)
 		})
-		t.Run("&&struct{}", func(t *testing.T) {
+		t.Run("**struct{}", func(t *testing.T) {
 			const color = "blue"
 			p := struct {
 				color string
@@ -52,7 +52,7 @@ func TestSet(t *testing.T) {
 			assert.NoError(t, Set(obj, "color", color))
 			assert.Equal(t, color, p.color)
 		})
-		t.Run("&&&struct{}", func(t *testing.T) {
+		t.Run("***struct{}", func(t *testing.T) {
 			const color = "yellow"
 			p := struct {
 				color string
@@ -64,7 +64,7 @@ func TestSet(t *testing.T) {
 			assert.NoError(t, Set(obj, "color", color))
 			assert.Equal(t, color, p.color)
 		})
-		t.Run("&&&&struct{}", func(t *testing.T) {
+		t.Run("****struct{}", func(t *testing.T) {
 			const color = "green"
 			p := struct {
 				color string
