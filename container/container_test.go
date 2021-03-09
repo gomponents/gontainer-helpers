@@ -60,6 +60,21 @@ func TestContainer_Get(t *testing.T) {
 			},
 			Disposable: false,
 		})
+		container.Override("holding", ServiceDefinition{
+			Provider: func() (interface{}, error) {
+				return struct{}{}, nil
+			},
+			Disposable: false,
+		})
+		container.RegisterDecorator(func(s string, i interface{}) (interface{}, error) {
+			if s == "holding" {
+				_, err := container.Get("company")
+				if err != nil {
+					return nil, err
+				}
+			}
+			return i, nil
+		})
 
 		management, managementErr := container.Get("management")
 		assert.Nil(t, management)
@@ -69,6 +84,15 @@ func TestContainer_Get(t *testing.T) {
 			"cannot create service `management`: circular dependency: management -> company -> employer -> company",
 		)
 		// make sure chain of dependencies is cleared
+		assert.Empty(t, container.circularDeps.chain)
+
+		holding, holdingErr := container.Get("holding")
+		assert.Nil(t, holding)
+		assert.EqualError(
+			t,
+			holdingErr,
+			"cannot decorate service `holding`: circular dependency: holding -> company -> employer -> company",
+		)
 		assert.Empty(t, container.circularDeps.chain)
 
 		_, dbErr := container.Get("db")
