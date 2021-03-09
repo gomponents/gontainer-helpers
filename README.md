@@ -56,3 +56,7 @@ func main() {
 	s2 := exporters.MustToString(struct{}{})
 }
 ```
+
+### Callers
+
+Callers package allows calling given func with list of parameters without knowing types of them.
