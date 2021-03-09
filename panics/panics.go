@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type Getter func() interface{}
+type Getter = func() interface{}
 
 func WrapGetter(g Getter, s string) interface{} {
 	defer func() {
