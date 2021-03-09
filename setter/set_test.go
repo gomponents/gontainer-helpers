@@ -30,16 +30,54 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, Set(&p3, "color", "brown"))
 		assert.Equal(t, "brown", p.color)
 	})
-	// todo
-	//t.Run("var a interface{} = ***struct", func(t *testing.T) {
-	//	p := &struct {
-	//		color string
-	//	}{}
-	//	p2 := &p
-	//	var p3 interface{} = &p2
-	//	assert.NoError(t, Set(&p3, "color", "brown"))
-	//	assert.Equal(t, "brown", p.color)
-	//})
+	t.Run("var a interface{}", func(t *testing.T) {
+		t.Run("&struct{}", func(t *testing.T) {
+			const color = "red"
+			p := struct {
+				color string
+			}{}
+			var obj interface{} = &p
+			assert.Equal(t, "", p.color)
+			assert.NoError(t, Set(obj, "color", color))
+			assert.Equal(t, color, p.color)
+		})
+		t.Run("&&struct{}", func(t *testing.T) {
+			const color = "blue"
+			p := struct {
+				color string
+			}{}
+			p2 := &p
+			var obj interface{} = &p2
+			assert.Equal(t, "", p.color)
+			assert.NoError(t, Set(obj, "color", color))
+			assert.Equal(t, color, p.color)
+		})
+		t.Run("&&&struct{}", func(t *testing.T) {
+			const color = "yellow"
+			p := struct {
+				color string
+			}{}
+			p2 := &p
+			p3 := &p2
+			var obj interface{} = &p3
+			assert.Equal(t, "", p.color)
+			assert.NoError(t, Set(obj, "color", color))
+			assert.Equal(t, color, p.color)
+		})
+		t.Run("&&&&struct{}", func(t *testing.T) {
+			const color = "green"
+			p := struct {
+				color string
+			}{}
+			p2 := &p
+			p3 := &p2
+			p4 := &p3
+			var obj interface{} = &p4
+			assert.Equal(t, "", p.color)
+			assert.NoError(t, Set(obj, "color", color))
+			assert.Equal(t, color, p.color)
+		})
+	})
 	t.Run("struct", func(t *testing.T) {
 		p := person{}
 		assert.NoError(t, Set(&p, "Name", "Jane"))

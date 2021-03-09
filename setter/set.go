@@ -61,6 +61,30 @@ func Set(strct interface{}, field string, val interface{}) error {
 		return fmt.Errorf("set `%T`.`%s`: %s", strct, field, err.Error())
 	}
 
+	// chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct)
+	isInterfaceOverPointerChain := func(chain kindChain) bool {
+		if len(chain) < 4 {
+			return false
+		}
+		if chain[0] != reflect.Ptr {
+			return false
+		}
+		if chain[1] != reflect.Interface {
+			return false
+		}
+		if chain[len(chain)-1] != reflect.Struct {
+			return false
+		}
+
+		for _, c := range chain[2 : len(chain)-2] {
+			if c != reflect.Ptr {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	switch {
 	// s := struct{ val int }{}
 	// Set(&s...
@@ -71,14 +95,15 @@ func Set(strct interface{}, field string, val interface{}) error {
 			val,
 		))
 
+	// case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct):
 	// var s interface{} = &struct{ val int }{}
 	// Set(&s...
-	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr, reflect.Struct):
-		return wrap(set(
-			reflectVal.Elem().Elem().Elem(),
-			field,
-			val,
-		))
+	case isInterfaceOverPointerChain(chain):
+		elem := reflectVal.Elem()
+		for i := 0; i < len(chain)-2; i++ {
+			elem = elem.Elem()
+		}
+		return wrap(set(elem, field, val))
 
 	// var s interface{} = struct{ val int }{}
 	// Set(&s...
