@@ -66,7 +66,7 @@ func TestContainer_Get(t *testing.T) {
 		assert.EqualError(
 			t,
 			managementErr,
-			"circular dependency: management -> company -> employer -> company",
+			"cannot create service `management`: circular dependency: management -> company -> employer -> company",
 		)
 		// make sure chain of dependencies is cleared
 		assert.Empty(t, container.circularDeps.chain)

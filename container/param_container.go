@@ -49,8 +49,8 @@ func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 		}
 		if f, ok := r.(finalErr); ok {
 			err = f
-			if b.circularDeps.isStopped() {
-				err = finalErr{error: fmt.Errorf(p, id, err.Error())}
+			if len(b.circularDeps.chain) == 0 {
+				err = fmt.Errorf(p, id, err.Error())
 			}
 			return
 		}

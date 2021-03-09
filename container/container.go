@@ -89,20 +89,25 @@ func (c Container) Get(id string) (service interface{}, err error) {
 		return serviceDef.service, nil
 	}
 
+	decorateErr := func(err error, action string) error {
+		const p = "cannot %s service `%s`: %s"
+		if finalErr, ok := err.(finalErr); ok {
+			if len(c.circularDeps.chain) == 1 {
+				return fmt.Errorf(p, action, id, err.Error())
+			}
+			return finalErr
+		}
+		return fmt.Errorf(p, action, id, err.Error())
+	}
+
 	service, err = serviceDef.definition.Provider()
 	if err != nil {
-		if finalErr, ok := err.(finalErr); ok {
-			return nil, finalErr
-		}
-		return nil, fmt.Errorf("cannot create service `%s`: %s", id, err.Error())
+		return nil, decorateErr(err, "create")
 	}
 
 	service, err = c.decorate(id, service)
 	if err != nil {
-		if finalErr, ok := err.(finalErr); ok {
-			return nil, finalErr
-		}
-		return nil, fmt.Errorf("cannot decorate service `%s`: %s", id, err.Error())
+		return nil, decorateErr(err, "decorate")
 	}
 
 	if !serviceDef.definition.Disposable {
