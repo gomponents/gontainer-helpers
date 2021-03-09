@@ -22,13 +22,13 @@ import (
 )
 
 type Person struct {
-	Name string
+	name string
 }
 
 func main() {
 	p := Person{}
 	setter.Set(&p, "Name", "Jane")
-	fmt.Println(p.Name) // Jane
+	fmt.Println(p.name) // Jane
 }
 ```
 
