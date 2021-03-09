@@ -60,3 +60,48 @@ func main() {
 ### Callers
 
 Callers package allows calling given func with list of parameters without knowing types of them.
+
+**Definitions**
+
+1. Provider - func which returns one or two values, second value must be type of error if given.
+2. Wither - method which creates copy of struct, overrides one field then return given copy.
+
+**Examples**
+
+```go
+package main
+
+import (
+	"regexp"
+)
+
+type Person struct {
+	Name string
+}
+
+type Matcher struct {
+	regexp *regexp.Regexp
+}
+
+// provider
+func NewPerson(name string) *Person {
+	return &Person{Name: name}
+}
+
+// provider
+func NewMatcher(expr string) (*Matcher, error) {
+	var err error
+	r := Matcher{}
+	r.regexp, err = regexp.Compile(expr)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+// wither
+func (p Person) WithName(n string) Person {
+	p.Name = n
+	return p
+}
+```
