@@ -38,10 +38,13 @@ import (
 )
 
 func main() {
-	v, err := exporters.Export([]int{1, 2, 3})
-	if err != nil {
-		panic(err)
-	}
+	v, _ := exporters.Export([]int{1, 2, 3})
 	fmt.Println(v) // []int{int(1), int(2), int(3)}
+
+	// ToString casts input value to string. It supports bool, nil and numeric values.
+	s, _ := exporters.ToString(3.14) // s == "3.14"
+
+	// panic: "cannot cast parameter of type `struct {}` to string: parameter of type `struct {}` is not supported"
+	s2 := exporters.MustToString(struct{}{})
 }
 ```
