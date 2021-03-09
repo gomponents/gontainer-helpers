@@ -42,9 +42,16 @@ func NewParamContainer(definitions map[string]ParamDefinition) *ParamContainer {
 
 func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("cannot get parameter `%s`: %s", id, r)
+		const p = "cannot get parameter `%s`: %s"
+		r := recover()
+		if r == nil {
+			return
 		}
+		if f, ok := r.(finalErr); ok {
+			err = f
+			return
+		}
+		err = fmt.Errorf(p, id, r)
 	}()
 
 	defer b.circularDeps.stop()
@@ -62,12 +69,6 @@ func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 	}
 
 	param = paramDef.definition.Provider()
-	//if err != nil {
-	//	if finalErr, ok := err.(finalErr); ok {
-	//		return nil, finalErr
-	//	}
-	//	return nil, fmt.Errorf("cannot get parameter `%s`: %s", id, err.Error())
-	//}
 
 	if !paramDef.definition.Disposable {
 		paramDef.created = true

@@ -10,7 +10,7 @@ type finalErr struct {
 }
 
 func newCircularDepError(deps []string) finalErr {
-	return finalErr{fmt.Errorf(
+	return finalErr{error: fmt.Errorf(
 		"circular dependency: %s",
 		strings.Join(deps, " -> "),
 	)}

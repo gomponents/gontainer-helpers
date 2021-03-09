@@ -49,7 +49,7 @@ func TestParamContainer_GetParam(t *testing.T) {
 			{
 				container: circularContainer,
 				id:        "nickname",
-				error:     "cannot get parameter `nickname`: cannot get parameter `name`: cannot get parameter `username`: circular dependency: nickname -> name -> username -> nickname",
+				error:     "circular dependency: nickname -> name -> username -> nickname",
 			},
 		}
 
