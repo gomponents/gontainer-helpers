@@ -24,6 +24,13 @@ func TestParamContainer_GetParam(t *testing.T) {
 			})
 		}
 
+		c2 := NewParamContainer(nil)
+		c2.OverrideParam("name", ParamDefinition{
+			Provider: func() interface{} {
+				return circularContainer.MustGetParam("name")
+			},
+		})
+
 		scenarios := []struct {
 			container *ParamContainer
 			id        string
@@ -49,7 +56,12 @@ func TestParamContainer_GetParam(t *testing.T) {
 			{
 				container: circularContainer,
 				id:        "nickname",
-				error:     "circular dependency: nickname -> name -> username -> nickname",
+				error:     "cannot get parameter `nickname`: circular dependency: nickname -> name -> username -> nickname",
+			},
+			{
+				container: c2,
+				id:        "name",
+				error:     "cannot get parameter `name`: cannot get parameter `name`: circular dependency: name -> username -> nickname -> name",
 			},
 		}
 

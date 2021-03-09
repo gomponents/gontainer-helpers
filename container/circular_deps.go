@@ -25,3 +25,7 @@ func (c *circularDeps) start(id string) []string {
 func (c *circularDeps) stop() {
 	c.chain = c.chain[:len(c.chain)-1]
 }
+
+func (c *circularDeps) isStopped() bool {
+	return len(c.chain) == 0
+}
