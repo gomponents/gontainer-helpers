@@ -230,6 +230,12 @@ func TestToString(t *testing.T) {
 			})
 
 			t.Run("MustToString", func(t *testing.T) {
+
+				fmt.Printf(
+					"cannot cast parameter of type `%T` to string: %s",
+					s.input,
+					s.error,
+				)
 				defer func() {
 					err := recover()
 					if s.error == "" {
