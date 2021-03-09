@@ -2,9 +2,13 @@
 
 TEST
 
-### API
+# Gontainer-helpers
 
-#### Setters
+Set of packages to easily build DI container.
+
+## API
+
+### Setters
 
 Setters package allows easily to append a value to the field of struct by name. It supports unexported fields as well.
 
@@ -28,7 +32,7 @@ func main() {
 }
 ```
 
-#### Exporters
+### Exporters
 
 Exporters package allows exporting variables to executable GO code.
 
