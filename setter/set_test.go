@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_isInterfaceOverPointerChain(t *testing.T) {
+func Test_kindChain_isInterfaceOverPointerChain(t *testing.T) {
 	scenarios := []struct {
 		chain    kindChain
 		expected bool
@@ -33,9 +33,13 @@ func Test_isInterfaceOverPointerChain(t *testing.T) {
 			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Ptr, reflect.Struct},
 			expected: true,
 		},
+		{
+			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Ptr, reflect.Ptr, reflect.Struct},
+			expected: true,
+		},
 	}
 
-	for i := 1; i < 10; i++ {
+	for i := 3; i < 10; i++ {
 		ptrs := make(kindChain, 0)
 		for j := 0; j < i; j++ {
 			ptrs = append(ptrs, reflect.Ptr)
@@ -56,7 +60,7 @@ func Test_isInterfaceOverPointerChain(t *testing.T) {
 
 	for id, s := range scenarios {
 		t.Run(fmt.Sprintf("scenario %d", id), func(t *testing.T) {
-			assert.Equal(t, s.expected, isInterfaceOverPointerChain(s.chain))
+			assert.Equal(t, s.expected, s.chain.isInterfaceOverPointerChain())
 		})
 	}
 }

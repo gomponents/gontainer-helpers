@@ -30,31 +30,6 @@ func set(strct reflect.Value, field string, val interface{}) error {
 	return nil
 }
 
-// isInterfaceOverPointerChain is equivalent to:
-// chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct)
-func isInterfaceOverPointerChain(chain kindChain) bool {
-	if len(chain) < 4 {
-		return false
-	}
-	if chain[0] != reflect.Ptr {
-		return false
-	}
-	if chain[1] != reflect.Interface {
-		return false
-	}
-	if chain[len(chain)-1] != reflect.Struct {
-		return false
-	}
-
-	for _, c := range chain[2 : len(chain)-1] {
-		if c != reflect.Ptr {
-			return false
-		}
-	}
-
-	return true
-}
-
 // Set assigns value of `val` to field `field` on struct `strct`.
 // For `val` == nil it will always assign zero-value (e.g. 0 for int).
 // Unexported fields are supported.
@@ -99,7 +74,7 @@ func Set(strct interface{}, field string, val interface{}) error {
 	// case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct):
 	// var s interface{} = &struct{ val int }{}
 	// Set(&s...
-	case isInterfaceOverPointerChain(chain):
+	case chain.isInterfaceOverPointerChain():
 		elem := reflectVal.Elem()
 		for i := 0; i < len(chain)-2; i++ {
 			elem = elem.Elem()
@@ -138,6 +113,31 @@ func (c kindChain) equalTo(kinds ...reflect.Kind) bool {
 
 	for i := 0; i < len(c); i++ {
 		if c[i] != kinds[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// isInterfaceOverPointerChain is equivalent to:
+// chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct)
+func (c kindChain) isInterfaceOverPointerChain() bool {
+	if len(c) < 4 {
+		return false
+	}
+	if c[0] != reflect.Ptr {
+		return false
+	}
+	if c[1] != reflect.Interface {
+		return false
+	}
+	if c[len(c)-1] != reflect.Struct {
+		return false
+	}
+
+	for _, curr := range c[2 : len(c)-1] {
+		if curr != reflect.Ptr {
 			return false
 		}
 	}
