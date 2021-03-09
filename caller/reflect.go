@@ -93,6 +93,14 @@ func CallProvider(provider interface{}, params ...interface{}) (interface{}, err
 	return r, e
 }
 
+func MustCallProvider(provider interface{}, params ...interface{}) interface{} {
+	r, err := CallProvider(provider, params...)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
 func MustCallByName(object interface{}, method string, params ...interface{}) []interface{} {
 	val := reflect.ValueOf(object)
 	fn := val.MethodByName(method)
