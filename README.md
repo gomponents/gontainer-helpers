@@ -25,3 +25,23 @@ func main() {
 	fmt.Println(p.Name) // Jane
 }
 ```
+
+#### Exporters
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/gomponents/gontainer-helpers/exporters"
+)
+
+func main() {
+	v, err := exporters.Export([]int{1, 2, 3})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(v) // []int{int(1), int(2), int(3)}
+}
+```
