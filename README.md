@@ -4,7 +4,7 @@ TEST
 
 # Gontainer-helpers
 
-Set of packages to easily build DI container.
+Set of packages to easily build DI container based on external configuration.
 
 ## API
 
