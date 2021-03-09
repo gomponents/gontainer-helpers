@@ -63,8 +63,8 @@ Callers package allows calling given func with list of parameters without knowin
 
 **Definitions**
 
-1. Provider - func which returns one or two values, second value must be type of error if given.
-2. Wither - method which creates copy of struct, overrides one field then return given copy.
+1. *Provider* - func which returns one or two values, second value must be type of error if given.
+2. *Wither* - method which creates copy of struct, overrides one field then return given copy.
 
 **Examples**
 
