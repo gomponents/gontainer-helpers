@@ -147,33 +147,6 @@ func CallWitherByName(object interface{}, wither string, params ...interface{}) 
 	return MustCallWitherByName(object, wither, params...), nil
 }
 
-func CallDecorator(decorator interface{}, object interface{}, args ...interface{}) (interface{}, error) {
-	t := reflect.TypeOf(decorator)
-	if t.Kind() != reflect.Func {
-		return nil, fmt.Errorf("decorator must be kind of %s, %s given", reflect.Func.String(), t.Kind().String())
-	}
-	if t.NumOut() == 0 || t.NumOut() > 2 {
-		return nil, fmt.Errorf("decorator must return 1 or 2 values, given function returns %d values", t.NumOut())
-	}
-	if t.NumOut() == 2 && !t.Out(1).Implements(errorInterface) {
-		return nil, fmt.Errorf("second value returned by provider must implements error interface, `%T` given", decorator)
-	}
-
-	results, err := Call(decorator, append([]interface{}{object}, args...)...)
-	if err != nil {
-		return nil, err
-	}
-
-	r := results[0]
-	var e error
-	if len(results) > 1 {
-		// do not panic when results[1] == nil
-		e, _ = results[1].(error)
-	}
-
-	return r, e
-}
-
 type reflectType struct {
 	reflect.Type
 }
