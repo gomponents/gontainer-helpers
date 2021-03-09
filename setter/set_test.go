@@ -66,6 +66,15 @@ func Test_kindChain_isInterfaceOverPointerChain(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
+	// todo
+	//t.Run("todo", func(t *testing.T) {
+	//	var a interface{}
+	//	var b interface{}
+	//	a = person{}
+	//	b = &a
+	//	assert.NoError(t, Set(&b, "color", "red"))
+	//	fmt.Println(a)
+	//})
 	t.Run("anonymous struct", func(t *testing.T) {
 		p := struct {
 			color string
