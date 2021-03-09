@@ -1,10 +1,65 @@
 package setter
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func Test_isInterfaceOverPointerChain(t *testing.T) {
+	scenarios := []struct {
+		chain    kindChain
+		expected bool
+	}{
+		{
+			chain:    nil,
+			expected: false,
+		},
+		{
+			chain:    kindChain{reflect.Struct, reflect.Struct, reflect.Struct, reflect.Struct},
+			expected: false,
+		},
+		{
+			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Struct, reflect.Interface},
+			expected: false,
+		},
+		{
+			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Struct, reflect.Struct},
+			expected: false,
+		},
+		{
+			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Ptr, reflect.Struct},
+			expected: true,
+		},
+	}
+
+	for i := 1; i < 10; i++ {
+		ptrs := make(kindChain, 0)
+		for j := 0; j < i; j++ {
+			ptrs = append(ptrs, reflect.Ptr)
+		}
+
+		chain := kindChain{reflect.Ptr, reflect.Interface}
+		chain = append(chain, ptrs...)
+		chain = append(chain, reflect.Struct)
+
+		scenarios = append(scenarios, struct {
+			chain    kindChain
+			expected bool
+		}{
+			chain:    chain,
+			expected: true,
+		})
+	}
+
+	for id, s := range scenarios {
+		t.Run(fmt.Sprintf("scenario %d", id), func(t *testing.T) {
+			assert.Equal(t, s.expected, isInterfaceOverPointerChain(s.chain))
+		})
+	}
+}
 
 func TestSet(t *testing.T) {
 	t.Run("anonymous struct", func(t *testing.T) {
@@ -127,7 +182,7 @@ func TestSet(t *testing.T) {
 		t.Run("Invalid pointer dest", func(t *testing.T) {
 			p := 5
 			err := Set(&p, "FirstName", "Mary")
-			assert.EqualError(t, err, "invalid parameter, setter.Set expects pointer to struct, given ptr.int")
+			assert.EqualError(t, err, "invalid parameter, setter.Set expects pointer to struct, ptr.int given")
 		})
 		t.Run("Invalid type of value", func(t *testing.T) {
 			p := person{}

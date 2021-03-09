@@ -30,6 +30,31 @@ func set(strct reflect.Value, field string, val interface{}) error {
 	return nil
 }
 
+// isInterfaceOverPointerChain is equivalent to:
+// chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct)
+func isInterfaceOverPointerChain(chain kindChain) bool {
+	if len(chain) < 4 {
+		return false
+	}
+	if chain[0] != reflect.Ptr {
+		return false
+	}
+	if chain[1] != reflect.Interface {
+		return false
+	}
+	if chain[len(chain)-1] != reflect.Struct {
+		return false
+	}
+
+	for _, c := range chain[2 : len(chain)-1] {
+		if c != reflect.Ptr {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Set assigns value of `val` to field `field` on struct `strct`.
 // For `val` == nil it will always assign zero-value (e.g. 0 for int).
 // Unexported fields are supported.
@@ -59,30 +84,6 @@ func Set(strct interface{}, field string, val interface{}) error {
 			return nil
 		}
 		return fmt.Errorf("set `%T`.`%s`: %s", strct, field, err.Error())
-	}
-
-	// chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Ptr (, reflect.Ptr...), reflect.Struct)
-	isInterfaceOverPointerChain := func(chain kindChain) bool {
-		if len(chain) < 4 {
-			return false
-		}
-		if chain[0] != reflect.Ptr {
-			return false
-		}
-		if chain[1] != reflect.Interface {
-			return false
-		}
-		if chain[len(chain)-1] != reflect.Struct {
-			return false
-		}
-
-		for _, c := range chain[2 : len(chain)-2] {
-			if c != reflect.Ptr {
-				return false
-			}
-		}
-
-		return true
 	}
 
 	switch {
@@ -118,7 +119,7 @@ func Set(strct interface{}, field string, val interface{}) error {
 		return nil
 
 	default:
-		return fmt.Errorf("invalid parameter, setter.Set expects pointer to struct, given %s", chain.String())
+		return fmt.Errorf("invalid parameter, setter.Set expects pointer to struct, %s given", chain.String())
 	}
 }
 
