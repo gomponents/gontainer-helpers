@@ -27,7 +27,7 @@ type Person struct {
 
 func main() {
 	p := Person{}
-	setter.Set(&p, "Name", "Jane")
+	setter.Set(&p, "name", "Jane")
 	fmt.Println(p.name) // Jane
 }
 ```
