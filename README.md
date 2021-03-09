@@ -6,6 +6,8 @@ TEST
 
 #### Setters
 
+Setters package allows easily to append a value to the field of struct by name. It supports unexported fields as well.
+
 ```go
 package main
 
@@ -27,6 +29,8 @@ func main() {
 ```
 
 #### Exporters
+
+Exporters package allows exporting variables to executable GO code.
 
 ```go
 package main
