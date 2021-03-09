@@ -12,14 +12,18 @@ func Test_newCircularDeps(t *testing.T) {
 
 		assert.Nil(t, d.start("foo"))
 		assert.Nil(t, d.start("bar"))
+		assert.False(t, d.isStopped())
 		d.stop()
+		assert.False(t, d.isStopped())
 		d.stop()
+		assert.True(t, d.isStopped())
 
 		assert.Empty(t, d.chain)
 	})
 
 	t.Run("Circular deps", func(t *testing.T) {
 		d := newCircularDeps()
+		assert.True(t, d.isStopped())
 
 		assert.Nil(t, d.start("app"))
 		assert.Nil(t, d.start("storage"))
@@ -28,7 +32,9 @@ func Test_newCircularDeps(t *testing.T) {
 		d.stop()
 		d.stop()
 		d.stop()
+		assert.False(t, d.isStopped())
 		d.stop()
+		assert.True(t, d.isStopped())
 
 		assert.Empty(t, d.chain)
 	})
