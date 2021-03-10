@@ -211,7 +211,7 @@ func TestMustSet(t *testing.T) {
 		defer func() {
 			assert.Equal(
 				t,
-				"cannot set parameter `foo`: invalid parameter, setter.Set expects pointer to struct, int given",
+				"invalid parameter, setter.Set expects pointer to struct, int given",
 				fmt.Sprintf("%s", recover()),
 			)
 		}()

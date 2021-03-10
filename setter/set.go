@@ -99,10 +99,11 @@ func Set(strct interface{}, field string, val interface{}) error {
 }
 
 // MustSet calls Set with given parameters, it panics in case of error.
+// todo wrap??
 func MustSet(strct interface{}, field string, val interface{}) {
 	err := Set(strct, field, val)
 	if err != nil {
-		panic(fmt.Sprintf("cannot set parameter `%s`: %s", field, err))
+		panic(err)
 	}
 }
 
