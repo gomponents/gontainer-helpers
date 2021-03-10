@@ -101,6 +101,17 @@ func MustCallProvider(provider interface{}, params ...interface{}) interface{} {
 	return r
 }
 
+func WrapProvider(msg string, provider interface{}, params ...interface{}) interface{} {
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+		panic(fmt.Sprintf("%s: %s", msg, r))
+	}()
+	return MustCallProvider(provider, params...)
+}
+
 func MustCallByName(object interface{}, method string, params ...interface{}) []interface{} {
 	val := reflect.ValueOf(object)
 	fn := val.MethodByName(method)
