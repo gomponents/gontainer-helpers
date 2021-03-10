@@ -101,7 +101,8 @@ func MustCallProvider(provider interface{}, params ...interface{}) interface{} {
 	return r
 }
 
-func WrapProvider(msg string, provider interface{}, params ...interface{}) interface{} {
+// WrapMustCallProvider calls MustCallProvider, prepends error by given msg in case of panic.
+func WrapMustCallProvider(msg string, provider interface{}, params ...interface{}) interface{} {
 	defer func() {
 		r := recover()
 		if r == nil {
