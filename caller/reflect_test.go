@@ -207,6 +207,15 @@ func TestCall(t *testing.T) {
 	})
 }
 
+func TestWrapMustCall(t *testing.T) {
+	defer func() {
+		assert.Equal(t, "some error: weird error", recover())
+	}()
+	WrapMustCall("some error", func() {
+		panic("weird error")
+	})
+}
+
 func TestCallProvider(t *testing.T) {
 	t.Run("Given scenarios", func(t *testing.T) {
 		scenarios := []struct {
