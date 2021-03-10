@@ -102,7 +102,7 @@ func Set(strct interface{}, field string, val interface{}) error {
 func MustSet(strct interface{}, field string, val interface{}) {
 	err := Set(strct, field, val)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("cannot set parameter `%s`: %s", field, err))
 	}
 }
 

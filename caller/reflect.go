@@ -49,6 +49,7 @@ func MustCall(fn interface{}, params ...interface{}) []interface{} {
 	return call(reflect.ValueOf(fn), params...)
 }
 
+// todo required?
 func prependPanic(msg string) func() {
 	return func() {
 		r := recover()
@@ -57,12 +58,6 @@ func prependPanic(msg string) func() {
 		}
 		panic(fmt.Sprintf("%s: %s", msg, r))
 	}
-}
-
-// WrapMustCall calls MustCall, prepends error by given msg in case of panic.
-func WrapMustCall(msg string, fn interface{}, params ...interface{}) interface{} {
-	defer prependPanic(msg)
-	return MustCall(fn, params...)
 }
 
 // Call calls function MustCall and returns error in case of panic.

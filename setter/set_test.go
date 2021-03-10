@@ -209,7 +209,11 @@ func TestMustSet(t *testing.T) {
 	})
 	t.Run("Given invalid scenario", func(t *testing.T) {
 		defer func() {
-			assert.NotNil(t, recover())
+			assert.Equal(
+				t,
+				"cannot set parameter `foo`: invalid parameter, setter.Set expects pointer to struct, int given",
+				fmt.Sprintf("%s", recover()),
+			)
 		}()
 		MustSet(10, "foo", "bar")
 	})
