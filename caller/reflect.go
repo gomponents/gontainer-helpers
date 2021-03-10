@@ -49,6 +49,22 @@ func MustCall(fn interface{}, params ...interface{}) []interface{} {
 	return call(reflect.ValueOf(fn), params...)
 }
 
+func prependPanic(msg string) func() {
+	return func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+		panic(fmt.Sprintf("%s: %s", msg, r))
+	}
+}
+
+// WrapMustCall calls MustCall, prepends error by given msg in case of panic.
+func WrapMustCall(msg string, fn interface{}, params ...interface{}) interface{} {
+	defer prependPanic(msg)
+	return MustCall(fn, params...)
+}
+
 // Call calls function MustCall and returns error in case of panic.
 func Call(fn interface{}, params ...interface{}) (result []interface{}, err error) {
 	defer func() {
@@ -103,13 +119,7 @@ func MustCallProvider(provider interface{}, params ...interface{}) interface{} {
 
 // WrapMustCallProvider calls MustCallProvider, prepends error by given msg in case of panic.
 func WrapMustCallProvider(msg string, provider interface{}, params ...interface{}) interface{} {
-	defer func() {
-		r := recover()
-		if r == nil {
-			return
-		}
-		panic(fmt.Sprintf("%s: %s", msg, r))
-	}()
+	defer prependPanic(msg)
 	return MustCallProvider(provider, params...)
 }
 
