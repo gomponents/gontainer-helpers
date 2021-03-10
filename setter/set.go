@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unsafe"
 
-	ref "github.com/gomponents/gontainer-helpers/reflect"
+	pkgReflect "github.com/gomponents/gontainer-helpers/reflect"
 )
 
 type kindChain []reflect.Kind
@@ -17,7 +17,7 @@ func set(strct reflect.Value, field string, val interface{}) error {
 		return fmt.Errorf("field `%s` does not exist", field)
 	}
 
-	v, err := ref.Convert(val, f.Type())
+	v, err := pkgReflect.Convert(val, f.Type())
 	if err != nil {
 		// todo wrap err
 		return err
