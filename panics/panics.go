@@ -2,17 +2,17 @@ package panics
 
 import (
 	"fmt"
+
+	"github.com/gomponents/gontainer-helpers/caller"
 )
 
-type Getter = func() interface{}
-
-func WrapGetter(g Getter, s string) interface{} {
+func WrapProvider(msg string, provider interface{}, params ...interface{}) interface{} {
 	defer func() {
 		r := recover()
 		if r == nil {
 			return
 		}
-		panic(fmt.Sprintf("%s: %s", s, r))
+		panic(fmt.Sprintf("%s: %s", msg, r))
 	}()
-	return g()
+	return caller.MustCallProvider(provider, params...)
 }
