@@ -60,6 +60,12 @@ func prependPanic(msg string) func() {
 	}
 }
 
+// WrapMustCall calls MustCall, prepends error by given msg in case of panic.
+func WrapMustCall(msg string, fn interface{}, params ...interface{}) interface{} {
+	defer prependPanic(msg)
+	return MustCall(fn, params...)
+}
+
 // Call calls function MustCall and returns error in case of panic.
 func Call(fn interface{}, params ...interface{}) (result []interface{}, err error) {
 	defer func() {
