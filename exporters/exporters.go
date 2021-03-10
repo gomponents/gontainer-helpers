@@ -21,6 +21,15 @@ func Export(i interface{}) (string, error) {
 	return defaultExporter.Export(i)
 }
 
+// MustExport exports input value to GO code
+func MustExport(i interface{}) string {
+	r, err := Export(i)
+	if err != nil {
+		panic(fmt.Sprintf("cannot export parameter of type `%T` to string: %s", i, err.Error()))
+	}
+	return r
+}
+
 // ToString casts input value to string.
 // In case of string value output will be equal to input in opposition to Export function.
 func ToString(i interface{}) (string, error) {

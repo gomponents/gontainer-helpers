@@ -111,6 +111,7 @@ func TestExport(t *testing.T) {
 		input  interface{}
 		output string
 		error  string
+		panic  string
 	}{
 		{
 			input:  123,
@@ -135,6 +136,7 @@ func TestExport(t *testing.T) {
 		{
 			input: []interface{}{struct{}{}},
 			error: "cannot export elem 0 of slice: parameter of type `struct {}` is not supported",
+			panic: "cannot export parameter of type `[]interface {}` to string: cannot export elem 0 of slice: parameter of type `struct {}` is not supported",
 		},
 		{
 			input:  []int{1, 2, 3},
@@ -152,10 +154,27 @@ func TestExport(t *testing.T) {
 			input:  [0]float32{},
 			output: "[0]float32{}",
 		},
+		{
+			input: struct{}{},
+			error: "parameter of type `struct {}` is not supported",
+			panic: "cannot export parameter of type `struct {}` to string: parameter of type `struct {}` is not supported",
+		},
 	}
 
 	for i, s := range scenarios {
 		t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
+			func() {
+				defer func() {
+					r := recover()
+					if s.panic == "" {
+						assert.Nil(t, r)
+						return
+					}
+					assert.Equal(t, s.panic, r)
+				}()
+				assert.Equal(t, s.output, MustExport(s.input))
+			}()
+
 			o, err := Export(s.input)
 			if s.error == "" {
 				assert.NoError(t, err)
