@@ -239,6 +239,13 @@ func TestCallProvider(t *testing.T) {
 				r, err := CallProvider(s.provider, s.params...)
 				assert.NoError(t, err)
 				assert.Equal(t, s.expected, r)
+
+				t.Run("MustCallProvider", func(t *testing.T) {
+					defer func() {
+						assert.Nil(t, recover())
+					}()
+					assert.Equal(t, s.expected, MustCallProvider(s.provider, s.params...))
+				})
 			})
 		}
 	})
@@ -285,6 +292,17 @@ func TestCallProvider(t *testing.T) {
 				r, err := CallProvider(s.provider, s.params...)
 				assert.Nil(t, r)
 				assert.EqualError(t, err, s.err)
+
+				t.Run("MustCallProvider", func(t *testing.T) {
+					defer func() {
+						assert.Equal(
+							t,
+							s.err,
+							fmt.Sprintf("%s", recover()),
+						)
+					}()
+					MustCallProvider(s.provider, s.params...)
+				})
 			})
 		}
 	})
@@ -292,6 +310,17 @@ func TestCallProvider(t *testing.T) {
 	t.Run("Given invalid provider", func(t *testing.T) {
 		_, err := CallProvider(5)
 		assert.EqualError(t, err, "provider must be kind of func, int given")
+
+		t.Run("MustCallProvider", func(t *testing.T) {
+			defer func() {
+				assert.Equal(
+					t,
+					"provider must be kind of func, int given",
+					fmt.Sprintf("%s", recover()),
+				)
+			}()
+			MustCallProvider(5)
+		})
 	})
 }
 
