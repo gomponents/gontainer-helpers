@@ -1,11 +1,15 @@
 package std
 
+import (
+	"errors"
+)
+
 const paramTodoMsg = "parameter todo"
 
-// ParameterTodo panics always. It's just a mock param provider.
-func ParameterTodo(params ...string) interface{} {
+// ParameterTodo returns error always. It's just a mock param provider.
+func ParameterTodo(params ...string) (interface{}, error) {
 	if len(params) > 0 {
-		panic(params[0])
+		return nil, errors.New(params[0])
 	}
-	panic(paramTodoMsg)
+	return nil, errors.New(paramTodoMsg)
 }

@@ -10,16 +10,14 @@ import (
 
 func TestParameterTodo(t *testing.T) {
 	t.Run("Without arguments", func(t *testing.T) {
-		defer func() {
-			assert.Equal(t, recover(), paramTodoMsg)
-		}()
-		ParameterTodo()
+		v, err := ParameterTodo()
+		assert.EqualError(t, err, paramTodoMsg)
+		assert.Nil(t, v)
 	})
 	t.Run("With argument", func(t *testing.T) {
 		msg := fmt.Sprintf("%f", rand.Float32())
-		defer func() {
-			assert.Equal(t, recover(), msg)
-		}()
-		ParameterTodo(msg)
+		v, err := ParameterTodo(msg)
+		assert.EqualError(t, err, msg)
+		assert.Nil(t, v)
 	})
 }
