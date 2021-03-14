@@ -40,7 +40,7 @@ func TestLimitations(t *testing.T) {
 					assert.Nil(t, r)
 					assert.Zero(t, harryPotter)
 				})
-				t.Run("var v interface = book{}; CallByName(&v, ...", func(t *testing.T) {
+				t.Run("var v interface{} = book{}; CallByName(&v, ...", func(t *testing.T) {
 					var harryPotter interface{} = book{}
 					r, err := CallByName(&harryPotter, "SetTitle", "Harry Potter")
 					assert.EqualError(t, err, "invalid func `*interface {}`.`SetTitle`")
@@ -70,8 +70,15 @@ func TestLimitations(t *testing.T) {
 					assert.Nil(t, r)
 					assert.Equal(t, "Harry Potter", harryPotter.title)
 				})
-				t.Run("var v interface = &book{}; CallByName(v, ...", func(t *testing.T) {
+				t.Run("var v interface{} = &book{}; CallByName(v, ...", func(t *testing.T) {
 					var harryPotter interface{} = &book{}
+					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
+					assert.NoError(t, err)
+					assert.Nil(t, r)
+					assert.Equal(t, &book{title: "Harry Potter"}, harryPotter)
+				})
+				t.Run("var v interface{ SetTitle(string) } = &book{}; CallByName(v, ...", func(t *testing.T) {
+					var harryPotter interface{ SetTitle(string) } = &book{}
 					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
 					assert.NoError(t, err)
 					assert.Nil(t, r)
