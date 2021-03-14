@@ -324,6 +324,17 @@ func TestCallProvider(t *testing.T) {
 	})
 }
 
+func TestWrapMustCallProvider(t *testing.T) {
+	defer func() {
+		assert.Equal(
+			t,
+			"custom error: provider must be kind of func, int given",
+			fmt.Sprintf("%s", recover()),
+		)
+	}()
+	WrapMustCallProvider("custom error", 5)
+}
+
 func TestCallWitherByName(t *testing.T) {
 	t.Run("Given scenarios", func(t *testing.T) {
 		scenarios := []struct {
