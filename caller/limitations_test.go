@@ -30,7 +30,7 @@ func TestLimitations(t *testing.T) {
 	// Creating variable as a value will not work:
 	// v := book{}; CallByName(v, ...
 	// var v interface = book{}; CallByName(&v, ...
-	t.Run("Call value-struct's method", func(t *testing.T) {
+	t.Run("Call method", func(t *testing.T) {
 		t.Run("Pointer receiver", func(t *testing.T) {
 			t.Run("Given errors", func(t *testing.T) {
 				t.Run("v := book{}; CallByName(v, ...", func(t *testing.T) {
