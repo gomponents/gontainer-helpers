@@ -26,6 +26,10 @@ func Test_kindChain_isInterfaceOverPointerChain(t *testing.T) {
 			expected: false,
 		},
 		{
+			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Struct, reflect.Interface},
+			expected: false,
+		},
+		{
 			chain:    kindChain{reflect.Ptr, reflect.Interface, reflect.Struct, reflect.Struct},
 			expected: false,
 		},
