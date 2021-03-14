@@ -355,6 +355,12 @@ func TestCallWitherByName(t *testing.T) {
 				params: []interface{}{"Jane"},
 				output: person{name: "Jane"},
 			},
+			{
+				object: &person{name: "Mary"},
+				wither: "WithName",
+				params: []interface{}{"Jane"},
+				output: person{name: "Jane"},
+			},
 		}
 
 		for i, s := range scenarios {
