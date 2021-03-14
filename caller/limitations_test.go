@@ -72,7 +72,7 @@ func TestLimitations(t *testing.T) {
 				})
 			})
 		})
-		// Methods will value receiver do not have any limitations
+		// Methods with value receiver do not have any limitations
 		t.Run("Value receiver", func(t *testing.T) {
 			t.Run("b := book{}", func(t *testing.T) {
 				b := book{}
