@@ -5,8 +5,8 @@ import (
 	"sort"
 )
 
-type Provider func() (interface{}, error)
-type Decorator func(string, interface{}) (interface{}, error)
+type Provider = func() (interface{}, error)
+type Decorator = func(string, interface{}) (interface{}, error)
 
 type ServiceDefinition struct {
 	Provider Provider

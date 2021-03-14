@@ -18,16 +18,16 @@ func TestParamContainer_GetParam(t *testing.T) {
 		for k, dep := range deps {
 			d := dep
 			circularContainer.OverrideParam(k, ParamDefinition{
-				Provider: func() interface{} {
-					return circularContainer.MustGetParam(d)
+				Provider: func() (interface{}, error) {
+					return circularContainer.GetParam(d)
 				},
 			})
 		}
 
 		c2 := NewParamContainer(nil)
 		c2.OverrideParam("name", ParamDefinition{
-			Provider: func() interface{} {
-				return circularContainer.MustGetParam("name")
+			Provider: func() (interface{}, error) {
+				return circularContainer.GetParam("name")
 			},
 		})
 
@@ -39,8 +39,8 @@ func TestParamContainer_GetParam(t *testing.T) {
 			{
 				container: NewParamContainer(map[string]ParamDefinition{
 					"db.host": {
-						Provider: func() interface{} {
-							panic("todo")
+						Provider: func() (interface{}, error) {
+							return nil, fmt.Errorf("todo")
 						},
 						Disposable: false,
 					},

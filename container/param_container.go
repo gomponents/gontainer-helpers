@@ -10,11 +10,8 @@ type ParamContainer struct {
 	circularDeps *circularDeps
 }
 
-// todo replace by Provider
-type ParamProvider func() interface{}
-
 type ParamDefinition struct {
-	Provider   ParamProvider
+	Provider   Provider
 	Disposable bool
 }
 
@@ -41,8 +38,8 @@ func NewParamContainer(definitions map[string]ParamDefinition) *ParamContainer {
 }
 
 func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
+	const errorMsg = "cannot get parameter `%s`: %s"
 	defer func() {
-		const p = "cannot get parameter `%s`: %s"
 		r := recover()
 		if r == nil {
 			return
@@ -50,11 +47,11 @@ func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 		if f, ok := r.(finalErr); ok {
 			err = f
 			if len(b.circularDeps.chain) == 0 {
-				err = fmt.Errorf(p, id, err.Error())
+				err = fmt.Errorf(errorMsg, id, err.Error())
 			}
 			return
 		}
-		err = fmt.Errorf(p, id, r)
+		err = fmt.Errorf(errorMsg, id, r)
 	}()
 
 	defer b.circularDeps.stop()
@@ -71,7 +68,10 @@ func (b ParamContainer) GetParam(id string) (param interface{}, err error) {
 		return paramDef.param, nil
 	}
 
-	param = paramDef.definition.Provider()
+	param, err = paramDef.definition.Provider()
+	if err != nil {
+		panic(err)
+	}
 
 	if !paramDef.definition.Disposable {
 		paramDef.created = true

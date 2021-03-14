@@ -24,8 +24,8 @@ func TestNewAtomicParamContainer(t *testing.T) {
 			id := fmt.Sprintf("param-%d", i)
 			g.Go(func() {
 				err := c.RegisterParam(id, ParamDefinition{
-					Provider: func() interface{} {
-						return nil
+					Provider: func() (interface{}, error) {
+						return nil, nil
 					},
 					Disposable: false,
 				})
@@ -39,8 +39,8 @@ func TestNewAtomicParamContainer(t *testing.T) {
 			})
 			g.Go(func() {
 				c.OverrideParam(id, ParamDefinition{
-					Provider: func() interface{} {
-						return nil
+					Provider: func() (interface{}, error) {
+						return nil, nil
 					},
 					Disposable: false,
 				})
