@@ -61,6 +61,10 @@ func main() {
 
 Callers package allows calling given func with list of parameters without knowing types of them.
 
+**Limitations**
+
+To call the method with a pointer receiver we have to properly define the pointer, more details [here](caller/limitations_test.go).
+
 **Definitions**
 
 1. *Provider* - func which returns one or two values, second value must be type of error if given.
