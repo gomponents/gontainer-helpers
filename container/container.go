@@ -119,6 +119,14 @@ func (c Container) Get(id string) (service interface{}, err error) {
 	return service, nil
 }
 
+func (c *Container) Revoke(id string) error {
+	panic("todo")
+}
+
+func (c *Container) MustRevoke(id string) {
+	panic("todo")
+}
+
 func (c Container) MustGet(id string) interface{} {
 	r, e := c.Get(id)
 

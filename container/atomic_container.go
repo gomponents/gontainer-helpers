@@ -67,3 +67,11 @@ func (a AtomicContainer) RegisterDecorator(d Decorator) {
 	defer a.locker.Unlock()
 	a.container.RegisterDecorator(d)
 }
+
+func (a AtomicContainer) Lock() {
+	panic("todo")
+}
+
+func (a AtomicContainer) Unlock() {
+	panic("todo")
+}
