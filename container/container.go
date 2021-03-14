@@ -5,9 +5,6 @@ import (
 	"sort"
 )
 
-type Provider = func() (interface{}, error)
-type Decorator = func(string, interface{}) (interface{}, error)
-
 type ServiceDefinition struct {
 	Provider Provider
 	// Disposable says whether object should be cached or no.
@@ -70,6 +67,8 @@ func (c Container) Override(id string, s ServiceDefinition) {
 
 func (c Container) Get(id string) (service interface{}, err error) {
 	defer func() {
+		// todo check "if f, ok := r.(finalErr); ok {"
+		// see ParamContainer.GetParam
 		if r := recover(); r != nil {
 			err = fmt.Errorf("cannot create service `%s`: %s", id, r)
 		}
