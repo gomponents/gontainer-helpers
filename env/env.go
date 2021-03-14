@@ -8,32 +8,32 @@ import (
 
 const envVarDoesntExist = "environment variable `%s` does not exist"
 
-// MustGetInt returns environment variable if exists,
+// Get returns environment variable if exists,
 // otherwise it returns second argument if given.
-func MustGet(key string, def ...string) string {
+func Get(key string, def ...string) (string, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok {
 		if len(def) > 0 {
-			return def[0]
+			return def[0], nil
 		}
-		panic(fmt.Sprintf(envVarDoesntExist, key))
+		return "", fmt.Errorf(envVarDoesntExist, key)
 	}
-	return val
+	return val, nil
 }
 
-// MustGetInt returns environment variable converted to int if exists,
+// GetInt returns environment variable converted to int if exists,
 // otherwise it returns second argument if given.
-func MustGetInt(key string, def ...int) int {
+func GetInt(key string, def ...int) (int, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok {
 		if len(def) > 0 {
-			return def[0]
+			return def[0], nil
 		}
-		panic(fmt.Sprintf(envVarDoesntExist, key))
+		return 0, fmt.Errorf(envVarDoesntExist, key)
 	}
 	res, err := strconv.Atoi(val)
 	if err != nil {
-		panic(fmt.Sprintf("cannot cast env(`%s`) to int: %s", key, err.Error()))
+		return 0, fmt.Errorf("cannot cast env(`%s`) to int: %s", key, err.Error())
 	}
-	return res
+	return res, nil
 }

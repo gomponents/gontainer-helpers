@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMustGetInt(t *testing.T) {
+func TestGetInt(t *testing.T) {
 	t.Run("Given scenarios", func(t *testing.T) {
 		scenarios := []struct {
 			envs     map[string]string
@@ -40,10 +40,12 @@ func TestMustGetInt(t *testing.T) {
 					unsetEnvs(t, s.envs)
 				}()
 
+				v, err := GetInt(s.key, s.def...)
+				assert.NoError(t, err)
 				assert.Equal(
 					t,
 					s.expected,
-					MustGetInt(s.key, s.def...),
+					v,
 				)
 			})
 		}
@@ -84,13 +86,9 @@ func TestMustGetInt(t *testing.T) {
 					unsetEnvs(t, s.envs)
 				}()
 
-				defer func() {
-					err := recover()
-					assert.NotNil(t, err)
-					assert.Equal(t, s.error, err)
-				}()
-
-				MustGetInt(s.key, s.def...)
+				v, err := GetInt(s.key, s.def...)
+				assert.EqualError(t, err, s.error)
+				assert.Equal(t, 0, v)
 			})
 		}
 	})
