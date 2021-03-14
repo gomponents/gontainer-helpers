@@ -15,14 +15,16 @@ type container interface {
 }
 
 type AtomicContainer struct {
-	container container
-	locker    sync.Locker
+	container      container
+	locker         sync.Locker
+	externalLocker sync.Locker
 }
 
 func NewAtomicContainer(c container) *AtomicContainer {
 	return &AtomicContainer{
-		container: c,
-		locker:    &sync.Mutex{},
+		container:      c,
+		locker:         &sync.Mutex{},
+		externalLocker: &sync.Mutex{},
 	}
 }
 
@@ -68,10 +70,9 @@ func (a AtomicContainer) RegisterDecorator(d Decorator) {
 	a.container.RegisterDecorator(d)
 }
 
-func (a AtomicContainer) Lock() {
-	panic("todo")
-}
-
-func (a AtomicContainer) Unlock() {
-	panic("todo")
+func (a AtomicContainer) Atomic(fn func()) {
+	a.externalLocker.Lock()
+	defer a.externalLocker.Unlock()
+	fn()
+	// todo lock access to other funcs in atomic
 }
