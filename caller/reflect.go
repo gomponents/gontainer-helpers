@@ -118,10 +118,6 @@ func WrapMustCallProvider(msg string, provider interface{}, params ...interface{
 func MustCallByName(object interface{}, method string, params ...interface{}) []interface{} {
 	val := reflect.ValueOf(object)
 	fn := val.MethodByName(method)
-	for !fn.IsValid() && (val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface) {
-		val = val.Elem()
-		fn = val.MethodByName(method)
-	}
 
 	if !fn.IsValid() {
 		panic(fmt.Sprintf("invalid func `%T`.`%s`", object, method))
@@ -142,10 +138,6 @@ func CallByName(object interface{}, method string, params ...interface{}) (resul
 func MustCallWitherByName(object interface{}, wither string, params ...interface{}) interface{} {
 	val := reflect.ValueOf(object)
 	fn := val.MethodByName(wither)
-	for !fn.IsValid() && (val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface) {
-		val = val.Elem()
-		fn = val.MethodByName(wither)
-	}
 
 	if !fn.IsValid() {
 		panic(fmt.Sprintf("invalid wither `%T`.`%s`", object, wither))
