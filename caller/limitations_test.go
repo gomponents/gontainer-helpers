@@ -56,6 +56,13 @@ func TestLimitations(t *testing.T) {
 					assert.Nil(t, r)
 					assert.Equal(t, "Harry Potter", harryPotter.title)
 				})
+				t.Run("v := &book{}; CallByName(&v, ...", func(t *testing.T) {
+					harryPotter := &book{}
+					r, err := CallByName(&harryPotter, "SetTitle", "Harry Potter")
+					assert.NoError(t, err)
+					assert.Nil(t, r)
+					assert.Equal(t, "Harry Potter", harryPotter.title)
+				})
 				t.Run("v := &book{}", func(t *testing.T) {
 					harryPotter := &book{}
 					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
