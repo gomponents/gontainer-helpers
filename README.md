@@ -6,7 +6,7 @@ Do not use
 
 # Gontainer-helpers
 
-Set of packages to easily build DI container based on external configuration.
+Set of packages to build DI container based on external configuration.
 
 ## API
 
