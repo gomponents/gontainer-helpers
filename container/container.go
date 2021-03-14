@@ -66,11 +66,13 @@ func (c Container) Override(id string, s ServiceDefinition) {
 }
 
 func (c Container) Get(id string) (service interface{}, err error) {
+	const errorMsg = "cannot %s service `%s`: %s"
+
 	defer func() {
 		// todo check "if f, ok := r.(finalErr); ok {"
 		// see ParamContainer.GetParam
 		if r := recover(); r != nil {
-			err = fmt.Errorf("cannot create service `%s`: %s", id, r)
+			err = fmt.Errorf(errorMsg, "create", id, r)
 		}
 	}()
 
@@ -89,14 +91,13 @@ func (c Container) Get(id string) (service interface{}, err error) {
 	}
 
 	decorateErr := func(err error, action string) error {
-		const p = "cannot %s service `%s`: %s"
 		if finalErr, ok := err.(finalErr); ok {
 			if len(c.circularDeps.chain) == 1 {
-				return fmt.Errorf(p, action, id, err.Error())
+				return fmt.Errorf(errorMsg, action, id, err.Error())
 			}
 			return finalErr
 		}
-		return fmt.Errorf(p, action, id, err.Error())
+		return fmt.Errorf(errorMsg, action, id, err.Error())
 	}
 
 	service, err = serviceDef.definition.Provider()
