@@ -28,6 +28,9 @@ jobs:
     - name: Test
       run: make tests-unit
 
+    - name: Limitations
+      run: make tests-limitations
+
     - name: Test coverage
       run: make code-coverage
 

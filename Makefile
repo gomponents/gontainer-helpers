@@ -1,3 +1,6 @@
+tests-limitations:
+    go test -race -tags limitations
+
 tests-unit:
 	go test -race -coverprofile=coverage.out ./...
 
