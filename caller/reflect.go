@@ -101,17 +101,15 @@ func MustCallProvider(provider interface{}, params ...interface{}) interface{} {
 	return r
 }
 
-func prependPanic(msg string) {
-	r := recover()
-	if r == nil {
-		return
-	}
-	panic(fmt.Sprintf("%s: %s", msg, r))
-}
-
 // WrapMustCallProvider calls MustCallProvider, prepends error by given msg in case of panic.
 func WrapMustCallProvider(msg string, provider interface{}, params ...interface{}) interface{} {
-	defer prependPanic(msg)
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+		panic(fmt.Sprintf("%s: %s", msg, r))
+	}()
 	return MustCallProvider(provider, params...)
 }
 
