@@ -12,19 +12,21 @@ type container interface {
 	Has(string) bool
 	GetAllServiceIDs() []string
 	RegisterDecorator(Decorator)
+	Revoke(string) error
+	MustRevoke(string)
+	Remove(string) error
+	MustRemove(string)
 }
 
 type AtomicContainer struct {
-	container      container
-	locker         sync.Locker
-	externalLocker sync.Locker
+	container container
+	locker    sync.Locker
 }
 
 func NewAtomicContainer(c container) *AtomicContainer {
 	return &AtomicContainer{
-		container:      c,
-		locker:         &sync.Mutex{},
-		externalLocker: &sync.Mutex{},
+		container: c,
+		locker:    &sync.Mutex{},
 	}
 }
 
@@ -70,9 +72,26 @@ func (a AtomicContainer) RegisterDecorator(d Decorator) {
 	a.container.RegisterDecorator(d)
 }
 
-func (a AtomicContainer) Atomic(fn func()) {
-	a.externalLocker.Lock()
-	defer a.externalLocker.Unlock()
-	fn()
-	// todo lock access to other funcs in atomic
+func (a AtomicContainer) Revoke(id string) error {
+	a.locker.Lock()
+	defer a.locker.Unlock()
+	return a.container.Revoke(id)
+}
+
+func (a AtomicContainer) MustRevoke(id string) {
+	a.locker.Lock()
+	defer a.locker.Unlock()
+	a.container.MustRevoke(id)
+}
+
+func (a AtomicContainer) Remove(id string) error {
+	a.locker.Lock()
+	defer a.locker.Unlock()
+	return a.container.Remove(id)
+}
+
+func (a AtomicContainer) MustRemove(id string) {
+	a.locker.Lock()
+	defer a.locker.Unlock()
+	a.container.MustRemove(id)
 }
