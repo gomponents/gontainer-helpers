@@ -217,6 +217,14 @@ func (c *Container) GetMany(ids ...string) (map[string]interface{}, error) {
 	return r, nil
 }
 
+func (c *Container) MustGetMany(ids ...string) map[string]interface{} {
+	r, err := c.GetMany(ids...)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
 func (c *Container) MustGet(id string) interface{} {
 	r, e := c.Get(id)
 
