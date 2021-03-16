@@ -22,6 +22,10 @@ func (b book) WithTitle(t string) book {
 }
 
 func TestLimitations(t *testing.T) {
+	const harryPotterTitle = "Harry Potter"
+	harryPotter := book{title: harryPotterTitle}
+	emptyBook := book{}
+
 	// https://github.com/golang/go/wiki/MethodSets#interfaces
 
 	// Method with pointer receiver requires explicit definition of pointer:
@@ -36,62 +40,62 @@ func TestLimitations(t *testing.T) {
 		t.Run("Pointer receiver", func(t *testing.T) {
 			t.Run("Given errors", func(t *testing.T) {
 				t.Run("v := book{}; CallByName(v, ...", func(t *testing.T) {
-					harryPotter := book{}
-					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
+					b := book{}
+					r, err := CallByName(b, "SetTitle", harryPotterTitle)
 					assert.EqualError(t, err, "invalid func `caller.book`.`SetTitle`")
 					assert.Nil(t, r)
-					assert.Zero(t, harryPotter)
+					assert.Zero(t, b)
 				})
 				t.Run("var v interface{} = book{}; CallByName(&v, ...", func(t *testing.T) {
-					var harryPotter interface{} = book{}
-					r, err := CallByName(&harryPotter, "SetTitle", "Harry Potter")
+					var b interface{} = book{}
+					r, err := CallByName(&b, "SetTitle", harryPotterTitle)
 					assert.EqualError(t, err, "invalid func `*interface {}`.`SetTitle`")
 					assert.Nil(t, r)
-					assert.Equal(t, book{}, harryPotter)
+					assert.Equal(t, emptyBook, b)
 				})
 			})
 			t.Run("Given scenarios", func(t *testing.T) {
 				t.Run("v := book{}; CallByName(&v, ...", func(t *testing.T) {
-					harryPotter := book{}
-					r, err := CallByName(&harryPotter, "SetTitle", "Harry Potter")
+					b := book{}
+					r, err := CallByName(&b, "SetTitle", harryPotterTitle)
 					assert.NoError(t, err)
 					assert.Nil(t, r)
-					assert.Equal(t, "Harry Potter", harryPotter.title)
+					assert.Equal(t, harryPotter, b)
 				})
 				t.Run("v := &book{}; CallByName(&v, ...", func(t *testing.T) {
-					harryPotter := &book{}
-					r, err := CallByName(&harryPotter, "SetTitle", "Harry Potter")
+					b := &book{}
+					r, err := CallByName(&b, "SetTitle", harryPotterTitle)
 					assert.NoError(t, err)
 					assert.Nil(t, r)
-					assert.Equal(t, "Harry Potter", harryPotter.title)
+					assert.Equal(t, &harryPotter, b)
 				})
-				t.Run("v := &book{}", func(t *testing.T) {
-					harryPotter := &book{}
-					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
+				t.Run("v := &book{}; CallByName(v, ...", func(t *testing.T) {
+					b := &book{}
+					r, err := CallByName(b, "SetTitle", harryPotterTitle)
 					assert.NoError(t, err)
 					assert.Nil(t, r)
-					assert.Equal(t, "Harry Potter", harryPotter.title)
+					assert.Equal(t, &harryPotter, b)
 				})
 				t.Run("var v interface{} = &book{}; CallByName(v, ...", func(t *testing.T) {
-					var harryPotter interface{} = &book{}
-					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
+					var b interface{} = &book{}
+					r, err := CallByName(b, "SetTitle", harryPotterTitle)
 					assert.NoError(t, err)
 					assert.Nil(t, r)
-					assert.Equal(t, &book{title: "Harry Potter"}, harryPotter)
+					assert.Equal(t, &harryPotter, b)
 				})
 				t.Run("var v interface{} = &book{}; CallByName(&v, ...", func(t *testing.T) {
-					var harryPotter interface{} = &book{}
-					r, err := CallByName(&harryPotter, "SetTitle", "Harry Potter")
+					var b interface{} = &book{}
+					r, err := CallByName(&b, "SetTitle", harryPotterTitle)
 					assert.NoError(t, err)
 					assert.Nil(t, r)
-					assert.Equal(t, &book{title: "Harry Potter"}, harryPotter)
+					assert.Equal(t, &harryPotter, b)
 				})
 				t.Run("var v interface{ SetTitle(string) } = &book{}; CallByName(v, ...", func(t *testing.T) {
-					var harryPotter interface{ SetTitle(string) } = &book{}
-					r, err := CallByName(harryPotter, "SetTitle", "Harry Potter")
+					var b interface{ SetTitle(string) } = &book{}
+					r, err := CallByName(b, "SetTitle", harryPotterTitle)
 					assert.NoError(t, err)
 					assert.Nil(t, r)
-					assert.Equal(t, &book{title: "Harry Potter"}, harryPotter)
+					assert.Equal(t, &harryPotter, b)
 				})
 			})
 		})
@@ -99,31 +103,31 @@ func TestLimitations(t *testing.T) {
 		t.Run("Value receiver", func(t *testing.T) {
 			t.Run("b := book{}", func(t *testing.T) {
 				b := book{}
-				r, err := CallWitherByName(b, "WithTitle", "Harry Potter")
+				r, err := CallWitherByName(b, "WithTitle", harryPotterTitle)
 				assert.NoError(t, err)
-				assert.Equal(t, book{title: "Harry Potter"}, r)
+				assert.Equal(t, harryPotter, r)
 				assert.Zero(t, b)
 			})
 			t.Run("b := &book{}", func(t *testing.T) {
-				b := book{}
-				r, err := CallWitherByName(b, "WithTitle", "Harry Potter")
+				b := &book{}
+				r, err := CallWitherByName(b, "WithTitle", harryPotterTitle)
 				assert.NoError(t, err)
-				assert.Equal(t, book{title: "Harry Potter"}, r)
-				assert.Zero(t, b)
+				assert.Equal(t, harryPotter, r)
+				assert.Equal(t, &emptyBook, b)
 			})
 			t.Run("var b interface{} = book{}", func(t *testing.T) {
 				var b interface{} = book{}
-				r, err := CallWitherByName(b, "WithTitle", "Harry Potter")
+				r, err := CallWitherByName(b, "WithTitle", harryPotterTitle)
 				assert.NoError(t, err)
-				assert.Equal(t, book{title: "Harry Potter"}, r)
-				assert.Zero(t, b)
+				assert.Equal(t, harryPotter, r)
+				assert.Equal(t, emptyBook, b)
 			})
 			t.Run("var b interface{} = &book{}", func(t *testing.T) {
 				var b interface{} = &book{}
-				r, err := CallWitherByName(b, "WithTitle", "Harry Potter")
+				r, err := CallWitherByName(b, "WithTitle", harryPotterTitle)
 				assert.NoError(t, err)
-				assert.Equal(t, book{title: "Harry Potter"}, r)
-				assert.Equal(t, &book{}, b)
+				assert.Equal(t, harryPotter, r)
+				assert.Equal(t, &emptyBook, b)
 			})
 		})
 	})
