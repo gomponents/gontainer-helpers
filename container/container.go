@@ -180,22 +180,22 @@ func (c *Container) MustRemove(id string) {
 //
 // c := NewContainer(nil)
 // c.Override("transaction", ServiceDefinition{
-// 	Provider: func() (interface{}, error) {
-// 		return c.MustGet("db").(*sql.DB).Begin()
-// 	},
-// 	Disposable: true,
+//     Provider: func() (interface{}, error) {
+//         return c.MustGet("db").(*sql.DB).Begin()
+//     },
+//     Disposable: true,
 // })
 // c.Override("userRepo", ServiceDefinition{
-// 	Provider: func() (interface{}, error) {
-// 		return NewUserRepo(c.MustGet("transaction").(*sql.Tx)), nil
-// 	},
-// 	Disposable: true,
+//     Provider: func() (interface{}, error) {
+//         return NewUserRepo(c.MustGet("transaction").(*sql.Tx)), nil
+//     },
+//     Disposable: true,
 // })
 // c.Override("itemRepo", ServiceDefinition{
-// 	Provider: func() (interface{}, error) {
-// 		return NewItemRepo(c.MustGet("transaction").(*sql.Tx)), nil
-// 	},
-// 	Disposable: true,
+//     Provider: func() (interface{}, error) {
+//         return NewItemRepo(c.MustGet("transaction").(*sql.Tx)), nil
+//     },
+//     Disposable: true,
 // })
 // services, err := c.GetMany("userRepo", "itemRepo")
 func (c *Container) GetMany(ids ...string) (map[string]interface{}, error) {
