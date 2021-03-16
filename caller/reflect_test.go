@@ -347,6 +347,8 @@ func TestWrapMustCallProvider(t *testing.T) {
 
 func TestCallWitherByName(t *testing.T) {
 	t.Run("Given scenarios", func(t *testing.T) {
+		var emptyPerson interface{} = person{}
+
 		scenarios := []struct {
 			object interface{}
 			wither string
@@ -370,6 +372,18 @@ func TestCallWitherByName(t *testing.T) {
 				wither: "WithName",
 				params: []interface{}{"Jane"},
 				output: person{name: "Jane"},
+			},
+			{
+				object: emptyPerson,
+				wither: "WithName",
+				params: []interface{}{"Kaladin"},
+				output: person{name: "Kaladin"},
+			},
+			{
+				object: &emptyPerson,
+				wither: "WithName",
+				params: []interface{}{"Shallan"},
+				output: person{name: "Shallan"},
 			},
 		}
 
@@ -437,8 +451,4 @@ func (p person) withName(n string) person {
 
 func (p *person) setName(n string) {
 	p.name = n
-}
-
-func (p *person) Foo() person {
-	return *p
 }
