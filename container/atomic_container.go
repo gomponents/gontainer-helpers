@@ -16,8 +16,8 @@ type container interface {
 	MustRevoke(string)
 	Remove(string) error
 	MustRemove(string)
-	GetMany(...string) (map[string]interface{}, error)
-	MustGetMany(...string) map[string]interface{}
+	GetConsistent(...string) (map[string]interface{}, error)
+	MustGetConsistent(...string) map[string]interface{}
 }
 
 type AtomicContainer struct {
@@ -98,14 +98,14 @@ func (a AtomicContainer) MustRemove(id string) {
 	a.container.MustRemove(id)
 }
 
-func (a AtomicContainer) GetMany(ids ...string) (map[string]interface{}, error) {
+func (a AtomicContainer) GetConsistent(ids ...string) (map[string]interface{}, error) {
 	a.locker.Lock()
 	defer a.locker.Unlock()
-	return a.container.GetMany(ids...)
+	return a.container.GetConsistent(ids...)
 }
 
-func (a AtomicContainer) MustGetMany(ids ...string) map[string]interface{} {
+func (a AtomicContainer) MustGetConsistent(ids ...string) map[string]interface{} {
 	a.locker.Lock()
 	defer a.locker.Unlock()
-	return a.container.MustGetMany(ids...)
+	return a.container.MustGetConsistent(ids...)
 }

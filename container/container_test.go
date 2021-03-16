@@ -110,7 +110,7 @@ func TestContainer_RegisterDecorator(t *testing.T) {
 	assert.Len(t, c.decorators, 1)
 }
 
-func TestContainer_GetMany(t *testing.T) {
+func TestContainer_GetConsistent(t *testing.T) {
 	t.Run("Shared disposable dependency", func(t *testing.T) {
 		c := NewContainer(nil)
 		i := 0
@@ -134,7 +134,7 @@ func TestContainer_GetMany(t *testing.T) {
 			Disposable: true,
 		})
 
-		slices, err := c.GetMany("sliceA", "sliceB")
+		slices, err := c.GetConsistent("sliceA", "sliceB")
 		assert.NoError(t, err)
 		assert.Equal(t, []interface{}{1}, slices["sliceA"])
 		assert.Equal(t, []interface{}{1}, slices["sliceB"])
@@ -143,7 +143,7 @@ func TestContainer_GetMany(t *testing.T) {
 		assert.Equal(t, []interface{}{3}, c.MustGet("sliceB"))
 		assert.Equal(t, []interface{}{4}, c.MustGet("sliceA"))
 
-		slices, err = c.GetMany("sliceA", "sliceB")
+		slices, err = c.GetConsistent("sliceA", "sliceB")
 		assert.NoError(t, err)
 		assert.Equal(t, []interface{}{5}, slices["sliceA"])
 		assert.Equal(t, []interface{}{5}, slices["sliceB"])
@@ -153,8 +153,8 @@ func TestContainer_GetMany(t *testing.T) {
 
 	t.Run("Given error", func(t *testing.T) {
 		c := NewContainer(nil)
-		s, err := c.GetMany("db")
-		assert.EqualError(t, err, "GetMany: service `db` does not exist")
+		s, err := c.GetConsistent("db")
+		assert.EqualError(t, err, "GetConsistent: service `db` does not exist")
 		assert.Nil(t, s)
 	})
 }

@@ -173,7 +173,7 @@ func (c *Container) MustRemove(id string) {
 	}
 }
 
-// GetMany returns list of services at once.
+// GetConsistent returns list of services at once.
 // If two services use the same dependency, and the given dependency is disposable,
 // both of them receive the same instance of given disposable dependency.
 // In the following example userRepo and itemRepo will share the same transaction.
@@ -197,8 +197,8 @@ func (c *Container) MustRemove(id string) {
 //     },
 //     Disposable: true,
 // })
-// services, err := c.GetMany("userRepo", "itemRepo")
-func (c *Container) GetMany(ids ...string) (map[string]interface{}, error) {
+// services, err := c.GetConsistent("userRepo", "itemRepo")
+func (c *Container) GetConsistent(ids ...string) (map[string]interface{}, error) {
 	c.cacheGetMany = make(map[string]interface{})
 	defer func() {
 		c.cacheGetMany = nil
@@ -210,15 +210,15 @@ func (c *Container) GetMany(ids ...string) (map[string]interface{}, error) {
 		var err error
 		r[id], err = c.Get(id)
 		if err != nil {
-			return nil, fmt.Errorf("GetMany: %s", err.Error())
+			return nil, fmt.Errorf("GetConsistent: %s", err.Error())
 		}
 	}
 
 	return r, nil
 }
 
-func (c *Container) MustGetMany(ids ...string) map[string]interface{} {
-	r, err := c.GetMany(ids...)
+func (c *Container) MustGetConsistent(ids ...string) map[string]interface{} {
+	r, err := c.GetConsistent(ids...)
 	if err != nil {
 		panic(err)
 	}
