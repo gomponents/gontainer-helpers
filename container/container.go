@@ -197,7 +197,9 @@ func (c *Container) MustRemove(id string) {
 //     },
 //     Disposable: true,
 // })
-// services, err := c.GetConsistent("userRepo", "itemRepo")
+// services, err := c.GetConsistent("userRepo", "itemRepo", "transaction")
+// // .. some logic
+// services["transaction"].(*sql.Tx).Commit()
 func (c *Container) GetConsistent(ids ...string) (map[string]interface{}, error) {
 	c.cacheGetMany = make(map[string]interface{})
 	defer func() {
