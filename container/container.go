@@ -11,7 +11,7 @@ type ServiceDefinition struct {
 	// Disposable says whether object should be cached or no.
 	Disposable bool
 
-	// ConsistentDeps says whether all dependencies should be shared even if they are disposable
+	// ConsistentDeps says whether all sub-dependencies should be shared even if they are disposable
 	// see Container.GetConsistent
 	ConsistentDeps bool
 }
