@@ -125,6 +125,10 @@ func (c *Container) Revoke(id string) error {
 		return fmt.Errorf("cannot revoke service `%s`, becaus it does not exist", id)
 	}
 
+	if c.services[id].definition.Disposable {
+		return fmt.Errorf("cannot revoke service `%s`, because it is disposable", id)
+	}
+
 	cp := c.services[id]
 	cp.service = nil
 	cp.created = false
