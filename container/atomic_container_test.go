@@ -182,7 +182,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 			})
 		}
 		g.Wait()
-		assert.Equal(t, max, len(*base.decorators))
+		assert.Equal(t, max, len(base.decorators))
 	})
 
 	t.Run("All", func(t *testing.T) {

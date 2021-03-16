@@ -16,6 +16,7 @@ type container interface {
 	MustRevoke(string)
 	Remove(string) error
 	MustRemove(string)
+	GetMany(...string) (map[string]interface{}, error)
 }
 
 type AtomicContainer struct {
@@ -94,4 +95,10 @@ func (a AtomicContainer) MustRemove(id string) {
 	a.locker.Lock()
 	defer a.locker.Unlock()
 	a.container.MustRemove(id)
+}
+
+func (a AtomicContainer) GetMany(ids ...string) (map[string]interface{}, error) {
+	a.locker.Lock()
+	defer a.locker.Unlock()
+	return a.container.GetMany(ids...)
 }

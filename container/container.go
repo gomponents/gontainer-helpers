@@ -20,7 +20,8 @@ type metaServiceDefinition struct {
 type Container struct {
 	services     map[string]metaServiceDefinition
 	circularDeps *circularDeps
-	decorators   *[]Decorator
+	decorators   []Decorator
+	cacheGetMany map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -33,17 +34,15 @@ func NewContainer(definitions map[string]ServiceDefinition) *Container {
 		}
 	}
 
-	d := make([]Decorator, 0)
-
 	return &Container{
 		services:     meta,
 		circularDeps: newCircularDeps(),
-		decorators:   &d,
+		decorators:   make([]Decorator, 0),
 	}
 }
 
 // Register registers new service, returns error in when service already exists
-func (c Container) Register(id string, s ServiceDefinition) error {
+func (c *Container) Register(id string, s ServiceDefinition) error {
 	if c.Has(id) {
 		return fmt.Errorf("service `%s` is already registered", id)
 	}
@@ -57,7 +56,7 @@ func (c Container) Register(id string, s ServiceDefinition) error {
 }
 
 // Override overrides or registers service
-func (c Container) Override(id string, s ServiceDefinition) {
+func (c *Container) Override(id string, s ServiceDefinition) {
 	c.services[id] = metaServiceDefinition{
 		definition: s,
 		service:    nil,
@@ -65,7 +64,7 @@ func (c Container) Override(id string, s ServiceDefinition) {
 	}
 }
 
-func (c Container) Get(id string) (service interface{}, err error) {
+func (c *Container) Get(id string) (service interface{}, err error) {
 	const errorMsg = "cannot %s service `%s`: %s"
 
 	defer func() {
@@ -79,6 +78,12 @@ func (c Container) Get(id string) (service interface{}, err error) {
 	defer c.circularDeps.stop()
 	if deps := c.circularDeps.start(id); len(deps) != 0 {
 		return nil, newCircularDepError(deps)
+	}
+
+	if c.cacheGetMany != nil {
+		if s, ok := c.cacheGetMany[id]; ok {
+			return s, nil
+		}
 	}
 
 	if !c.Has(id) {
@@ -114,6 +119,10 @@ func (c Container) Get(id string) (service interface{}, err error) {
 		serviceDef.created = true
 		serviceDef.service = service
 		c.services[id] = serviceDef
+	}
+
+	if c.cacheGetMany != nil {
+		c.cacheGetMany[id] = service
 	}
 
 	return service, nil
@@ -164,7 +173,51 @@ func (c *Container) MustRemove(id string) {
 	}
 }
 
-func (c Container) MustGet(id string) interface{} {
+// GetMany returns list of services at once.
+// If two services use the same dependency, and the given dependency is disposable,
+// both of them receive the same instance of given disposable dependency.
+// In the following example userRepo and itemRepo will share the same transaction.
+//
+// c := NewContainer(nil)
+// c.Override("transaction", ServiceDefinition{
+// 	Provider: func() (interface{}, error) {
+// 		return c.MustGet("db").(*sql.DB).Begin()
+// 	},
+// 	Disposable: true,
+// })
+// c.Override("userRepo", ServiceDefinition{
+// 	Provider: func() (interface{}, error) {
+// 		return NewUserRepo(c.MustGet("transaction").(*sql.Tx)), nil
+// 	},
+// 	Disposable: true,
+// })
+// c.Override("itemRepo", ServiceDefinition{
+// 	Provider: func() (interface{}, error) {
+// 		return NewItemsRepo(c.MustGet("transaction").(*sql.Tx)), nil
+// 	},
+// 	Disposable: true,
+// })
+// services, err := c.GetMany("userRepo", "itemRepo")
+func (c *Container) GetMany(ids ...string) (map[string]interface{}, error) {
+	c.cacheGetMany = make(map[string]interface{})
+	defer func() {
+		c.cacheGetMany = nil
+	}()
+
+	r := make(map[string]interface{})
+
+	for _, id := range ids {
+		var err error
+		r[id], err = c.Get(id)
+		if err != nil {
+			return nil, fmt.Errorf("GetMany: %s", err.Error())
+		}
+	}
+
+	return r, nil
+}
+
+func (c *Container) MustGet(id string) interface{} {
 	r, e := c.Get(id)
 
 	if e != nil {
@@ -174,12 +227,12 @@ func (c Container) MustGet(id string) interface{} {
 	return r
 }
 
-func (c Container) Has(id string) bool {
+func (c *Container) Has(id string) bool {
 	_, ok := c.services[id]
 	return ok
 }
 
-func (c Container) GetAllServiceIDs() []string {
+func (c *Container) GetAllServiceIDs() []string {
 	r := make([]string, 0)
 	for n, _ := range c.services {
 		r = append(r, n)
@@ -188,13 +241,13 @@ func (c Container) GetAllServiceIDs() []string {
 	return r
 }
 
-func (c Container) RegisterDecorator(d Decorator) {
-	*c.decorators = append(*c.decorators, d)
+func (c *Container) RegisterDecorator(d Decorator) {
+	c.decorators = append(c.decorators, d)
 }
 
-func (c Container) decorate(id string, s interface{}) (r interface{}, err error) {
+func (c *Container) decorate(id string, s interface{}) (r interface{}, err error) {
 	r = s
-	for _, d := range *c.decorators {
+	for _, d := range c.decorators {
 		r, err = d(id, r)
 		if err != nil {
 			return

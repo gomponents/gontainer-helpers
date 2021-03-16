@@ -103,9 +103,58 @@ func TestContainer_Get(t *testing.T) {
 
 func TestContainer_RegisterDecorator(t *testing.T) {
 	c := NewContainer(nil)
-	assert.Len(t, *c.decorators, 0)
+	assert.Len(t, c.decorators, 0)
 	c.RegisterDecorator(func(_ string, i interface{}) (interface{}, error) {
 		return i, nil
 	})
-	assert.Len(t, *c.decorators, 1)
+	assert.Len(t, c.decorators, 1)
+}
+
+func TestContainer_GetMany(t *testing.T) {
+	t.Run("Shared disposable dependency", func(t *testing.T) {
+		c := NewContainer(nil)
+		i := 0
+		c.Override("inc", ServiceDefinition{
+			Provider: func() (interface{}, error) {
+				i++
+				return i, nil
+			},
+			Disposable: true,
+		})
+		c.Override("sliceA", ServiceDefinition{
+			Provider: func() (interface{}, error) {
+				return []interface{}{c.MustGet("inc")}, nil
+			},
+			Disposable: true,
+		})
+		c.Override("sliceB", ServiceDefinition{
+			Provider: func() (interface{}, error) {
+				return []interface{}{c.MustGet("inc")}, nil
+			},
+			Disposable: true,
+		})
+
+		slices, err := c.GetMany("sliceA", "sliceB")
+		assert.NoError(t, err)
+		assert.Equal(t, []interface{}{1}, slices["sliceA"])
+		assert.Equal(t, []interface{}{1}, slices["sliceB"])
+
+		assert.Equal(t, []interface{}{2}, c.MustGet("sliceA"))
+		assert.Equal(t, []interface{}{3}, c.MustGet("sliceB"))
+		assert.Equal(t, []interface{}{4}, c.MustGet("sliceA"))
+
+		slices, err = c.GetMany("sliceA", "sliceB")
+		assert.NoError(t, err)
+		assert.Equal(t, []interface{}{5}, slices["sliceA"])
+		assert.Equal(t, []interface{}{5}, slices["sliceB"])
+
+		assert.Nil(t, c.cacheGetMany)
+	})
+
+	t.Run("Given error", func(t *testing.T) {
+		c := NewContainer(nil)
+		s, err := c.GetMany("db")
+		assert.EqualError(t, err, "GetMany: service `db` does not exist")
+		assert.Nil(t, s)
+	})
 }
