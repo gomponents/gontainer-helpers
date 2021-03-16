@@ -130,7 +130,7 @@ func (c *Container) Revoke(id string) error {
 	}
 
 	if !c.services[id].created {
-		return fmt.Errorf("cannot revoke service `%s`, because it is not created yet")
+		return fmt.Errorf("cannot revoke service `%s`, because it is not created yet", id)
 	}
 
 	cp := c.services[id]
