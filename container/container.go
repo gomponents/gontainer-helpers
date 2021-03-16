@@ -193,7 +193,7 @@ func (c *Container) MustRemove(id string) {
 // })
 // c.Override("itemRepo", ServiceDefinition{
 // 	Provider: func() (interface{}, error) {
-// 		return NewItemsRepo(c.MustGet("transaction").(*sql.Tx)), nil
+// 		return NewItemRepo(c.MustGet("transaction").(*sql.Tx)), nil
 // 	},
 // 	Disposable: true,
 // })
