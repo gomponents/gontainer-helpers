@@ -9,9 +9,11 @@ type ServiceDefinition struct {
 	Provider Provider
 
 	// Disposable says whether object should be cached or no.
+	// Disposable is logic negation of "shared" from Symfony.
+	// https://symfony.com/doc/current/service_container/shared.html
 	Disposable bool
 
-	// ConsistentDeps says whether all sub-dependencies should be shared even if they are disposable
+	// ConsistentDeps says whether all sub-dependencies should be shared even if they are disposable.
 	// see Container.GetConsistent
 	ConsistentDeps bool
 }
