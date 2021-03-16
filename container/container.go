@@ -137,7 +137,7 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 // Revoke remove a cached copy of the service
 func (c *Container) Revoke(id string) error {
 	if !c.Has(id) {
-		return fmt.Errorf("cannot revoke service `%s`, becaus it does not exist", id)
+		return fmt.Errorf("cannot revoke service `%s`, because it does not exist", id)
 	}
 
 	if c.services[id].definition.Disposable {
