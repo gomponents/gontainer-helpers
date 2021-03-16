@@ -133,6 +133,16 @@ func TestContainer_GetConsistent(t *testing.T) {
 			},
 			Disposable: true,
 		})
+		c.Override("metaslice", ServiceDefinition{
+			Provider: func() (interface{}, error) {
+				return append(
+					c.MustGet("sliceA").([]interface{}),
+					c.MustGet("sliceB").([]interface{})...,
+				), nil
+			},
+			Disposable:     true,
+			ConsistentDeps: true,
+		})
 
 		slices, err := c.GetConsistent("sliceA", "sliceB")
 		assert.NoError(t, err)
@@ -148,7 +158,12 @@ func TestContainer_GetConsistent(t *testing.T) {
 		assert.Equal(t, []interface{}{5}, slices["sliceA"])
 		assert.Equal(t, []interface{}{5}, slices["sliceB"])
 
+		// todo better tests for ConsistentDeps
+		m := c.MustGet("metaslice").([]interface{})
+		assert.Equal(t, m[0], m[1])
+
 		assert.Nil(t, c.cacheGetConsistent)
+		assert.Nil(t, c.cacheGet)
 	})
 
 	t.Run("Given error", func(t *testing.T) {

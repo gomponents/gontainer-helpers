@@ -11,7 +11,6 @@ type ServiceDefinition struct {
 	// Disposable says whether object should be cached or no.
 	Disposable bool
 
-	// todo
 	// ConsistentDeps says whether all dependencies should be shared even if they are disposable
 	// see Container.GetConsistent
 	ConsistentDeps bool
@@ -28,6 +27,7 @@ type Container struct {
 	circularDeps       *circularDeps
 	decorators         []Decorator
 	cacheGetConsistent map[string]interface{}
+	cacheGet           map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -92,6 +92,12 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		}
 	}
 
+	if c.cacheGet != nil {
+		if s, ok := c.cacheGet[id]; ok {
+			return s, nil
+		}
+	}
+
 	if !c.Has(id) {
 		return nil, fmt.Errorf("service `%s` does not exist", id)
 	}
@@ -99,6 +105,14 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 	serviceDef := c.services[id]
 	if serviceDef.created {
 		return serviceDef.service, nil
+	}
+
+	// c.cacheGet == nil to avoid recreation empty map in consistent subdeps
+	if c.cacheGet == nil && serviceDef.definition.ConsistentDeps {
+		c.cacheGet = make(map[string]interface{})
+		defer func() {
+			c.cacheGet = nil
+		}()
 	}
 
 	decorateErr := func(err error, action string) error {
@@ -129,6 +143,10 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 
 	if c.cacheGetConsistent != nil {
 		c.cacheGetConsistent[id] = service
+	}
+
+	if c.cacheGet != nil {
+		c.cacheGet[id] = service
 	}
 
 	return service, nil
