@@ -12,9 +12,9 @@ type ServiceDefinition struct {
 	Disposable bool
 
 	// todo
-	// Consistent says whether all dependencies should be shared even if they are disposable
+	// ConsistentDeps says whether all dependencies should be shared even if they are disposable
 	// see Container.GetConsistent
-	Consistent bool
+	ConsistentDeps bool
 }
 
 type metaServiceDefinition struct {
