@@ -22,6 +22,8 @@ func (b book) WithTitle(t string) book {
 }
 
 func TestLimitations(t *testing.T) {
+	// https://github.com/golang/go/wiki/MethodSets#interfaces
+
 	// Method with pointer receiver requires explicit definition of pointer:
 	// v := &book{}; CallByName(v, ...
 	// var v interface{} = &book{}; CallByName(v, ...
