@@ -23,7 +23,8 @@ func NewTaggedContainer(
 	}
 }
 
-func (b TaggedContainer) GetByTag(tag string) ([]interface{}, error) {
+// todo export?
+func (b TaggedContainer) getIDsByTag(tag string) []string {
 	svcs := make([]struct {
 		id       string
 		priority int
@@ -45,13 +46,22 @@ func (b TaggedContainer) GetByTag(tag string) ([]interface{}, error) {
 		return svcs[i].priority > svcs[j].priority
 	})
 
-	result := make([]interface{}, 0)
-	for _, s := range svcs {
-		r, err := b.container.Get(s.id)
+	r := make([]string, len(tagMapping))
+	for i, s := range svcs {
+		r[i] = s.id
+	}
+	return r
+}
+
+func (b TaggedContainer) GetByTag(tag string) ([]interface{}, error) {
+	ids := b.getIDsByTag(tag)
+	result := make([]interface{}, len(ids))
+	for i, id := range b.getIDsByTag(tag) {
+		r, err := b.container.Get(id)
 		if err != nil {
 			return nil, fmt.Errorf("cannot get services by tag `%s`: %s", tag, err.Error())
 		}
-		result = append(result, r)
+		result[i] = r
 	}
 
 	return result, nil
