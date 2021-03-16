@@ -148,7 +148,7 @@ func TestContainer_GetConsistent(t *testing.T) {
 		assert.Equal(t, []interface{}{5}, slices["sliceA"])
 		assert.Equal(t, []interface{}{5}, slices["sliceB"])
 
-		assert.Nil(t, c.cacheGetMany)
+		assert.Nil(t, c.cacheGetConsistent)
 	})
 
 	t.Run("Given error", func(t *testing.T) {

@@ -7,8 +7,14 @@ import (
 
 type ServiceDefinition struct {
 	Provider Provider
+
 	// Disposable says whether object should be cached or no.
 	Disposable bool
+
+	// todo
+	// Consistent says whether all dependencies should be shared even if they are disposable
+	// see Container.GetConsistent
+	Consistent bool
 }
 
 type metaServiceDefinition struct {
@@ -18,10 +24,10 @@ type metaServiceDefinition struct {
 }
 
 type Container struct {
-	services     map[string]metaServiceDefinition
-	circularDeps *circularDeps
-	decorators   []Decorator
-	cacheGetMany map[string]interface{}
+	services           map[string]metaServiceDefinition
+	circularDeps       *circularDeps
+	decorators         []Decorator
+	cacheGetConsistent map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -80,8 +86,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, newCircularDepError(deps)
 	}
 
-	if c.cacheGetMany != nil {
-		if s, ok := c.cacheGetMany[id]; ok {
+	if c.cacheGetConsistent != nil {
+		if s, ok := c.cacheGetConsistent[id]; ok {
 			return s, nil
 		}
 	}
@@ -121,8 +127,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		c.services[id] = serviceDef
 	}
 
-	if c.cacheGetMany != nil {
-		c.cacheGetMany[id] = service
+	if c.cacheGetConsistent != nil {
+		c.cacheGetConsistent[id] = service
 	}
 
 	return service, nil
@@ -201,9 +207,9 @@ func (c *Container) MustRemove(id string) {
 // // .. some logic
 // services["transaction"].(*sql.Tx).Commit()
 func (c *Container) GetConsistent(ids ...string) (map[string]interface{}, error) {
-	c.cacheGetMany = make(map[string]interface{})
+	c.cacheGetConsistent = make(map[string]interface{})
 	defer func() {
-		c.cacheGetMany = nil
+		c.cacheGetConsistent = nil
 	}()
 
 	r := make(map[string]interface{})
