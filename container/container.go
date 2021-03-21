@@ -48,7 +48,9 @@ type ServiceDefinition struct {
 	//               |-> UserRepository -> SQLTransaction
 	//               |-> ItemRepository ↗
 	//
-	// Let's consider more complex scenario. PurchaseService is wrapped by PurchaseServiceSQLTransactionAware.
+	// Let's consider more complex scenario:
+	// 1. PurchaseService is wrapped by PurchaseServiceSQLTransactionAware
+	// 2. PurchaseServiceSQLTransactionAware depends on SQLTransaction
 	//
 	// PurchaseServiceSQLTransactionAware---------------------------------------|
 	//                                  |-> PurchaseService                     ↓
