@@ -13,9 +13,9 @@ type ServiceDefinition struct {
 	// https://symfony.com/doc/current/service_container/shared.html
 	Disposable bool
 
-	// ConsistentDeps says whether all sub-dependencies should be shared even if they are disposable.
+	// CollatedDeps says whether all sub-dependencies should be shared even if they are disposable.
 	// see Container.GetConsistent
-	ConsistentDeps bool
+	CollatedDeps bool
 }
 
 type metaServiceDefinition struct {
@@ -25,11 +25,11 @@ type metaServiceDefinition struct {
 }
 
 type Container struct {
-	services           map[string]metaServiceDefinition
-	circularDeps       *circularDeps
-	decorators         []Decorator
-	cacheGetConsistent map[string]interface{}
-	cacheGet           map[string]interface{}
+	services        map[string]metaServiceDefinition
+	circularDeps    *circularDeps
+	decorators      []Decorator
+	cacheGetCollate map[string]interface{}
+	cacheGet        map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -88,8 +88,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, newCircularDepError(deps)
 	}
 
-	if c.cacheGetConsistent != nil {
-		if s, ok := c.cacheGetConsistent[id]; ok {
+	if c.cacheGetCollate != nil {
+		if s, ok := c.cacheGetCollate[id]; ok {
 			return s, nil
 		}
 	}
@@ -110,7 +110,7 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 	}
 
 	// c.cacheGet == nil to avoid recreation empty map in consistent subdeps
-	if c.cacheGet == nil && serviceDef.definition.ConsistentDeps {
+	if c.cacheGet == nil && serviceDef.definition.CollatedDeps {
 		c.cacheGet = make(map[string]interface{})
 		defer func() {
 			c.cacheGet = nil
@@ -143,8 +143,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		c.services[id] = serviceDef
 	}
 
-	if c.cacheGetConsistent != nil {
-		c.cacheGetConsistent[id] = service
+	if c.cacheGetCollate != nil {
+		c.cacheGetCollate[id] = service
 	}
 
 	if c.cacheGet != nil {
@@ -199,7 +199,7 @@ func (c *Container) MustRemove(id string) {
 	}
 }
 
-// GetConsistent returns list of services at once.
+// GetCollate returns list of services at once.
 // If two services use the same dependency, and the given dependency is disposable,
 // both of them receive the same instance of given disposable dependency.
 // In the following example userRepo and itemRepo will share the same transaction.
@@ -223,13 +223,13 @@ func (c *Container) MustRemove(id string) {
 //     },
 //     Disposable: true,
 // })
-// services, err := c.GetConsistent("userRepo", "itemRepo", "transaction")
+// services, err := c.GetCollate("userRepo", "itemRepo", "transaction")
 // // .. some logic
 // services["transaction"].(*sql.Tx).Commit()
-func (c *Container) GetConsistent(ids ...string) (map[string]interface{}, error) {
-	c.cacheGetConsistent = make(map[string]interface{})
+func (c *Container) GetCollate(ids ...string) (map[string]interface{}, error) {
+	c.cacheGetCollate = make(map[string]interface{})
 	defer func() {
-		c.cacheGetConsistent = nil
+		c.cacheGetCollate = nil
 	}()
 
 	r := make(map[string]interface{})
@@ -238,15 +238,15 @@ func (c *Container) GetConsistent(ids ...string) (map[string]interface{}, error)
 		var err error
 		r[id], err = c.Get(id)
 		if err != nil {
-			return nil, fmt.Errorf("GetConsistent: %s", err.Error())
+			return nil, fmt.Errorf("GetCollate: %s", err.Error())
 		}
 	}
 
 	return r, nil
 }
 
-func (c *Container) MustGetConsistent(ids ...string) map[string]interface{} {
-	r, err := c.GetConsistent(ids...)
+func (c *Container) MustGetCollate(ids ...string) map[string]interface{} {
+	r, err := c.GetCollate(ids...)
 	if err != nil {
 		panic(err)
 	}

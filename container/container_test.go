@@ -110,7 +110,7 @@ func TestContainer_RegisterDecorator(t *testing.T) {
 	assert.Len(t, c.decorators, 1)
 }
 
-func TestContainer_GetConsistent(t *testing.T) {
+func TestContainer_GetCollate(t *testing.T) {
 	t.Run("Shared disposable dependency", func(t *testing.T) {
 		c := NewContainer(nil)
 		i := 0
@@ -140,8 +140,8 @@ func TestContainer_GetConsistent(t *testing.T) {
 					c.MustGet("sliceB").([]interface{})...,
 				), nil
 			},
-			Disposable:     true,
-			ConsistentDeps: true,
+			Disposable:   true,
+			CollatedDeps: true,
 		})
 		c.Override("metaslice2", ServiceDefinition{
 			Provider: func() (interface{}, error) {
@@ -150,11 +150,11 @@ func TestContainer_GetConsistent(t *testing.T) {
 					c.MustGet("sliceB").([]interface{})...,
 				), nil
 			},
-			Disposable:     true,
-			ConsistentDeps: false,
+			Disposable:   true,
+			CollatedDeps: false,
 		})
 
-		slices, err := c.GetConsistent("sliceA", "sliceB")
+		slices, err := c.GetCollate("sliceA", "sliceB")
 		assert.NoError(t, err)
 		assert.Equal(t, []interface{}{1}, slices["sliceA"])
 		assert.Equal(t, []interface{}{1}, slices["sliceB"])
@@ -163,25 +163,25 @@ func TestContainer_GetConsistent(t *testing.T) {
 		assert.Equal(t, []interface{}{3}, c.MustGet("sliceB"))
 		assert.Equal(t, []interface{}{4}, c.MustGet("sliceA"))
 
-		slices, err = c.GetConsistent("sliceA", "sliceB")
+		slices, err = c.GetCollate("sliceA", "sliceB")
 		assert.NoError(t, err)
 		assert.Equal(t, []interface{}{5}, slices["sliceA"])
 		assert.Equal(t, []interface{}{5}, slices["sliceB"])
 
-		// todo better tests for ConsistentDeps
+		// todo better tests for CollatedDeps
 		m := c.MustGet("metaslice").([]interface{})
 		assert.Equal(t, m[0], m[1])
 		m2 := c.MustGet("metaslice2").([]interface{})
 		assert.NotEqual(t, m2[0], m2[1])
 
-		assert.Nil(t, c.cacheGetConsistent)
+		assert.Nil(t, c.cacheGetCollate)
 		assert.Nil(t, c.cacheGet)
 	})
 
 	t.Run("Given error", func(t *testing.T) {
 		c := NewContainer(nil)
-		s, err := c.GetConsistent("db")
-		assert.EqualError(t, err, "GetConsistent: service `db` does not exist")
+		s, err := c.GetCollate("db")
+		assert.EqualError(t, err, "GetCollate: service `db` does not exist")
 		assert.Nil(t, s)
 	})
 }
