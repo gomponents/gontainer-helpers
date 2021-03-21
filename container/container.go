@@ -11,11 +11,70 @@ type ServiceDefinition struct {
 	// Disposable says whether object should be cached or no.
 	// Disposable is logic negation of "shared" from Symfony.
 	// https://symfony.com/doc/current/service_container/shared.html
+	// todo remove
 	Disposable bool
 
 	// CollatedDeps says whether all sub-dependencies should be shared even if they are disposable.
 	// see Container.GetConsistent
+	// todo remove
 	CollatedDeps bool
+
+	// Singleton configures life-cycle of the given dependency
+	// see https://docs.spring.io/spring-framework/docs/3.0.0.M3/reference/html/ch04s04.html
+	// see https://symfony.com/doc/current/service_container/shared.html
+	// todo use it
+	Singleton bool
+
+	// EnforceSingletonDeps changes life-cycle of sub-dependencies
+	//
+	// Let's consider the following example:
+	// 1. PurchaseService depends on UserRepository and ItemRepository
+	// 2. UserRepository depends on SQLTransaction
+	// 3. ItemRepository depends on SQLTransaction
+	// 4. PurchaseService, UserRepository, ItemRepository and SQLTransaction are not singletons
+	//
+	// Our dependency graph will look like:
+	//
+	// PurchaseService
+	//               |-> UserRepository -> SQLTransaction (1)
+	//               |-> ItemRepository -> SQLTransaction (2)
+	//
+	// In scope of one service we have 2 repositories. Both of them depends on different SQL transactions,
+	// however we would like to achieve one transaction for entire scope of PurchaseService.
+	// The given flag gives an option to re-use non-singletons in scope of one service.
+	// When we enable it our dependency graph will look like:
+	//
+	// PurchaseService
+	//               |-> UserRepository -> SQLTransaction
+	//               |-> ItemRepository ↗
+	//
+	// Let's consider more complex scenario. PurchaseService is wrapped by PurchaseServiceSQLTransactionAware.
+	//
+	// PurchaseServiceSQLTransactionAware---------------------------------------|
+	//                                  |-> PurchaseService                     ↓
+	//                                                    |-> UserRepository -> SQLTransaction
+	//                                                    |-> ItemRepository ↗
+	//
+	// PurchaseServiceSQLTransactionAware has the same method signature as PurchaseService.
+	// However it does not perform any business logic, instead of that it calls method PurchaseService.DoAction
+	// and depending on result  it rollbacks or commits performed SQL operations.
+	//
+	// type PurchaseServiceSQLTransactionAware struct {
+	//     purchaseService PurchaseService
+	//     transaction     *sql.Tx
+	// }
+	//
+	// func (p *PurchaseServiceSQLTransactionAware) DoAction() error {
+	//     if err := p.purchaseService.DoAction(); err != nil {
+	//         p.transaction.Rollback()
+	//         return err
+	//     }
+	//
+	//     p.transaction.Commit()
+	//     return nil
+	// }
+	// todo use it
+	EnforceSingletonDeps bool
 }
 
 type metaServiceDefinition struct {
