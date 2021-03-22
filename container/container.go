@@ -25,7 +25,9 @@ type ServiceDefinition struct {
 	// todo use it
 	Singleton bool
 
-	// EnforceSingletonDeps changes life-cycle of sub-dependencies
+	// EnforceSingletonDeps extends the life-cycle of sub-dependencies.
+	// When in the scope a the given service we must use the same dependency twice,
+	// the given dependency will be re-used even if it is marked as a non-singleton.
 	//
 	// Let's consider the following example:
 	// 1. PurchaseService depends on UserRepository and ItemRepository
