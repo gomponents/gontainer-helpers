@@ -46,7 +46,7 @@ type ServiceDefinition struct {
 	//
 	// PurchaseService
 	//               |-> UserRepository -> SQLTransaction
-	//               |-> ItemRepository ---↑
+	//               |-> ItemRepository ↗
 	//
 	// Let's consider more complex scenario:
 	// 1. PurchaseService is wrapped by PurchaseServiceSQLTransactionAware
@@ -55,7 +55,7 @@ type ServiceDefinition struct {
 	// PurchaseServiceSQLTransactionAware---------------------------------------|
 	//                                  |-> PurchaseService                     ↓
 	//                                                    |-> UserRepository -> SQLTransaction
-	//                                                    |-> ItemRepository ---↑
+	//                                                    |-> ItemRepository ↗
 	//
 	// PurchaseServiceSQLTransactionAware has the same method signature as PurchaseService.
 	// However it does not perform any business logic, instead of that it calls method PurchaseService.DoAction
