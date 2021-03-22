@@ -91,11 +91,11 @@ type metaServiceDefinition struct {
 }
 
 type Container struct {
-	services        map[string]metaServiceDefinition
-	circularDeps    *circularDeps
-	decorators      []Decorator
-	cacheGetCollate map[string]interface{}
-	cacheGet        map[string]interface{}
+	services           map[string]metaServiceDefinition
+	circularDeps       *circularDeps
+	decorators         []Decorator
+	cacheGetSingletons map[string]interface{}
+	cacheGet           map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -154,8 +154,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, newCircularDepError(deps)
 	}
 
-	if c.cacheGetCollate != nil {
-		if s, ok := c.cacheGetCollate[id]; ok {
+	if c.cacheGetSingletons != nil {
+		if s, ok := c.cacheGetSingletons[id]; ok {
 			return s, nil
 		}
 	}
@@ -209,8 +209,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		c.services[id] = serviceDef
 	}
 
-	if c.cacheGetCollate != nil {
-		c.cacheGetCollate[id] = service
+	if c.cacheGetSingletons != nil {
+		c.cacheGetSingletons[id] = service
 	}
 
 	if c.cacheGet != nil {
@@ -265,37 +265,35 @@ func (c *Container) MustRemove(id string) {
 	}
 }
 
-// GetCollate returns list of services at once.
-// If two services use the same dependency, and the given dependency is disposable,
-// both of them receive the same instance of given disposable dependency.
-// In the following example userRepo and itemRepo will share the same transaction.
+// GetSingletons works similar to ServiceDefinition.EnforceSingletonDeps in the scope of all required dependencies.
 //
 // c := NewContainer(nil)
 // c.Override("transaction", ServiceDefinition{
 //     Provider: func() (interface{}, error) {
 //         return c.MustGet("db").(*sql.DB).Begin()
 //     },
-//     Disposable: true,
+//     Singleton: false,
 // })
 // c.Override("userRepo", ServiceDefinition{
 //     Provider: func() (interface{}, error) {
 //         return NewUserRepo(c.MustGet("transaction").(*sql.Tx)), nil
 //     },
-//     Disposable: true,
+//     Singleton: false,
 // })
 // c.Override("itemRepo", ServiceDefinition{
 //     Provider: func() (interface{}, error) {
 //         return NewItemRepo(c.MustGet("transaction").(*sql.Tx)), nil
 //     },
-//     Disposable: true,
+//     Singleton: false,
 // })
-// services, err := c.GetCollate("userRepo", "itemRepo", "transaction")
+// // userRepo and itemRepo use the same transaction
+// services, err := c.GetSingletons("userRepo", "itemRepo", "transaction")
 // // .. some logic
 // services["transaction"].(*sql.Tx).Commit()
-func (c *Container) GetCollate(ids ...string) (map[string]interface{}, error) {
-	c.cacheGetCollate = make(map[string]interface{})
+func (c *Container) GetSingletons(ids ...string) (map[string]interface{}, error) {
+	c.cacheGetSingletons = make(map[string]interface{})
 	defer func() {
-		c.cacheGetCollate = nil
+		c.cacheGetSingletons = nil
 	}()
 
 	r := make(map[string]interface{})
@@ -304,15 +302,15 @@ func (c *Container) GetCollate(ids ...string) (map[string]interface{}, error) {
 		var err error
 		r[id], err = c.Get(id)
 		if err != nil {
-			return nil, fmt.Errorf("GetCollate: %s", err.Error())
+			return nil, fmt.Errorf("GetSingletons: %s", err.Error())
 		}
 	}
 
 	return r, nil
 }
 
-func (c *Container) MustGetCollate(ids ...string) map[string]interface{} {
-	r, err := c.GetCollate(ids...)
+func (c *Container) MustGetSingletons(ids ...string) map[string]interface{} {
+	r, err := c.GetSingletons(ids...)
 	if err != nil {
 		panic(err)
 	}

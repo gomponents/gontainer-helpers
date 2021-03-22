@@ -110,7 +110,7 @@ func TestContainer_RegisterDecorator(t *testing.T) {
 	assert.Len(t, c.decorators, 1)
 }
 
-func TestContainer_GetCollate(t *testing.T) {
+func TestContainer_GetSingletons(t *testing.T) {
 	t.Run("Shared disposable dependency", func(t *testing.T) {
 		c := NewContainer(nil)
 		i := 0
@@ -154,7 +154,7 @@ func TestContainer_GetCollate(t *testing.T) {
 			CollatedDeps: false,
 		})
 
-		slices, err := c.GetCollate("sliceA", "sliceB")
+		slices, err := c.GetSingletons("sliceA", "sliceB")
 		assert.NoError(t, err)
 		assert.Equal(t, []interface{}{1}, slices["sliceA"])
 		assert.Equal(t, []interface{}{1}, slices["sliceB"])
@@ -163,7 +163,7 @@ func TestContainer_GetCollate(t *testing.T) {
 		assert.Equal(t, []interface{}{3}, c.MustGet("sliceB"))
 		assert.Equal(t, []interface{}{4}, c.MustGet("sliceA"))
 
-		slices, err = c.GetCollate("sliceA", "sliceB")
+		slices, err = c.GetSingletons("sliceA", "sliceB")
 		assert.NoError(t, err)
 		assert.Equal(t, []interface{}{5}, slices["sliceA"])
 		assert.Equal(t, []interface{}{5}, slices["sliceB"])
@@ -174,14 +174,14 @@ func TestContainer_GetCollate(t *testing.T) {
 		m2 := c.MustGet("metaslice2").([]interface{})
 		assert.NotEqual(t, m2[0], m2[1])
 
-		assert.Nil(t, c.cacheGetCollate)
+		assert.Nil(t, c.cacheGetSingletons)
 		assert.Nil(t, c.cacheGet)
 	})
 
 	t.Run("Given error", func(t *testing.T) {
 		c := NewContainer(nil)
-		s, err := c.GetCollate("db")
-		assert.EqualError(t, err, "GetCollate: service `db` does not exist")
+		s, err := c.GetSingletons("db")
+		assert.EqualError(t, err, "GetSingletons: service `db` does not exist")
 		assert.Nil(t, s)
 	})
 }
