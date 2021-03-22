@@ -76,7 +76,7 @@ type ServiceDefinition struct {
 	//     return nil
 	// }
 	//
-	// In the result our service is simpler. You do not need to handle your transaction in scope of business logic.
+	// In the result your service is simpler. You do not need to handle your transaction in scope of business logic.
 	// Instead of that you can wrap your business logic by transaction.
 	// todo use it
 	EnforceSingletonDeps bool
