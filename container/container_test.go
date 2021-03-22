@@ -22,7 +22,7 @@ func TestContainer_Get(t *testing.T) {
 					employer: emp,
 				}, nil
 			},
-			Disposable: false,
+			Singleton: true,
 		})
 		container.Override("employer", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
@@ -37,7 +37,7 @@ func TestContainer_Get(t *testing.T) {
 					company: company,
 				}, nil
 			},
-			Disposable: false,
+			Singleton: true,
 		})
 		container.Override("management", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
@@ -52,19 +52,19 @@ func TestContainer_Get(t *testing.T) {
 					company: company,
 				}, nil
 			},
-			Disposable: false,
+			Singleton: true,
 		})
 		container.Override("db", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
 				return struct{}{}, nil
 			},
-			Disposable: false,
+			Singleton: true,
 		})
 		container.Override("holding", ServiceDefinition{
 			Provider: func() (interface{}, error) {
 				return struct{}{}, nil
 			},
-			Disposable: false,
+			Singleton: true,
 		})
 		container.RegisterDecorator(func(s string, i interface{}) (interface{}, error) {
 			if s == "holding" {
@@ -111,7 +111,7 @@ func TestContainer_RegisterDecorator(t *testing.T) {
 }
 
 func TestContainer_GetSingletons(t *testing.T) {
-	t.Run("Shared disposable dependency", func(t *testing.T) {
+	t.Run("Shared non-singletons", func(t *testing.T) {
 		c := NewContainer(nil)
 		i := 0
 		c.Override("inc", ServiceDefinition{
@@ -119,19 +119,19 @@ func TestContainer_GetSingletons(t *testing.T) {
 				i++
 				return i, nil
 			},
-			Disposable: true,
+			Singleton: false,
 		})
 		c.Override("sliceA", ServiceDefinition{
 			Provider: func() (interface{}, error) {
 				return []interface{}{c.MustGet("inc")}, nil
 			},
-			Disposable: true,
+			Singleton: false,
 		})
 		c.Override("sliceB", ServiceDefinition{
 			Provider: func() (interface{}, error) {
 				return []interface{}{c.MustGet("inc")}, nil
 			},
-			Disposable: true,
+			Singleton: false,
 		})
 		c.Override("metaslice", ServiceDefinition{
 			Provider: func() (interface{}, error) {
@@ -140,8 +140,8 @@ func TestContainer_GetSingletons(t *testing.T) {
 					c.MustGet("sliceB").([]interface{})...,
 				), nil
 			},
-			Disposable:   true,
-			CollatedDeps: true,
+			Singleton:            false,
+			EnforceSingletonDeps: true,
 		})
 		c.Override("metaslice2", ServiceDefinition{
 			Provider: func() (interface{}, error) {
@@ -150,8 +150,8 @@ func TestContainer_GetSingletons(t *testing.T) {
 					c.MustGet("sliceB").([]interface{})...,
 				), nil
 			},
-			Disposable:   true,
-			CollatedDeps: false,
+			Singleton:            false,
+			EnforceSingletonDeps: false,
 		})
 
 		slices, err := c.GetSingletons("sliceA", "sliceB")

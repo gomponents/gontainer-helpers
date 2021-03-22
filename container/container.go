@@ -8,25 +8,13 @@ import (
 type ServiceDefinition struct {
 	Provider Provider
 
-	// Disposable says whether object should be cached or no.
-	// Disposable is logic negation of "shared" from Symfony.
-	// https://symfony.com/doc/current/service_container/shared.html
-	// todo remove
-	Disposable bool
-
-	// CollatedDeps says whether all sub-dependencies should be shared even if they are disposable.
-	// see Container.GetConsistent
-	// todo remove
-	CollatedDeps bool
-
 	// Singleton configures life-cycle of the given dependency
 	// see https://docs.spring.io/spring-framework/docs/3.0.0.M3/reference/html/ch04s04.html
 	// see https://symfony.com/doc/current/service_container/shared.html
-	// todo use it
 	Singleton bool
 
 	// EnforceSingletonDeps extends the life-cycle of sub-dependencies.
-	// When in the scope a the given service we must use the same dependency twice,
+	// When in the scope the given service we must use the same dependency twice,
 	// the given dependency will be re-used even if it is marked as a non-singleton.
 	//
 	// Let's consider the following example:
@@ -80,7 +68,6 @@ type ServiceDefinition struct {
 	//
 	// In the result your service is simpler. You do not need to handle your transaction in scope of business logic.
 	// Instead of that you can wrap your business logic by transaction.
-	// todo use it
 	EnforceSingletonDeps bool
 }
 
@@ -176,7 +163,7 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 	}
 
 	// c.cacheGet == nil to avoid recreation empty map in consistent subdeps
-	if c.cacheGet == nil && serviceDef.definition.CollatedDeps {
+	if c.cacheGet == nil && serviceDef.definition.EnforceSingletonDeps {
 		c.cacheGet = make(map[string]interface{})
 		defer func() {
 			c.cacheGet = nil
@@ -203,7 +190,7 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, decorateErr(err, "decorate")
 	}
 
-	if !serviceDef.definition.Disposable {
+	if serviceDef.definition.Singleton {
 		serviceDef.created = true
 		serviceDef.service = service
 		c.services[id] = serviceDef
@@ -226,8 +213,8 @@ func (c *Container) Revoke(id string) error {
 		return fmt.Errorf("cannot revoke service `%s`, because it does not exist", id)
 	}
 
-	if c.services[id].definition.Disposable {
-		return fmt.Errorf("cannot revoke service `%s`, because it is disposable", id)
+	if !c.services[id].definition.Singleton {
+		return fmt.Errorf("cannot revoke service `%s`, because it is not a singleton", id)
 	}
 
 	if !c.services[id].created {
