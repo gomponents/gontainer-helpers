@@ -59,7 +59,7 @@ type ServiceDefinition struct {
 	//
 	// PurchaseServiceSQLTransactionAware has the same method signature as PurchaseService.
 	// However it does not perform any business logic, instead of that it calls method PurchaseService.DoAction
-	// and depending on result  it rollbacks or commits performed SQL operations.
+	// and depending on result it rollbacks or commits performed SQL operations.
 	//
 	// type PurchaseServiceSQLTransactionAware struct {
 	//     purchaseService PurchaseService
