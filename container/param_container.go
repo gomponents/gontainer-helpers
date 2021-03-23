@@ -10,6 +10,7 @@ type ParamContainer struct {
 	circularDeps *circularDeps
 }
 
+// todo remove ParamDefinition, only Provider is enough
 type ParamDefinition struct {
 	Provider   Provider
 	Disposable bool

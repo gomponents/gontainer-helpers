@@ -16,8 +16,6 @@ type container interface {
 	MustRevoke(string)
 	Remove(string) error
 	MustRemove(string)
-	GetSingletons(...string) (map[string]interface{}, error)
-	MustGetSingletons(...string) map[string]interface{}
 }
 
 type AtomicContainer struct {
@@ -96,16 +94,4 @@ func (a AtomicContainer) MustRemove(id string) {
 	a.locker.Lock()
 	defer a.locker.Unlock()
 	a.container.MustRemove(id)
-}
-
-func (a AtomicContainer) GetSingletons(ids ...string) (map[string]interface{}, error) {
-	a.locker.Lock()
-	defer a.locker.Unlock()
-	return a.container.GetSingletons(ids...)
-}
-
-func (a AtomicContainer) MustGetSingletons(ids ...string) map[string]interface{} {
-	a.locker.Lock()
-	defer a.locker.Unlock()
-	return a.container.MustGetSingletons(ids...)
 }

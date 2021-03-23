@@ -6,6 +6,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type transaction struct {
+	id int
+}
+
+type userRepo struct {
+	transaction *transaction
+}
+
+type itemRepo struct {
+	transaction *transaction
+}
+
+type purchaseService struct {
+	userRepo *userRepo
+	itemRepo *itemRepo
+}
+
 func TestContainer_Get(t *testing.T) {
 	t.Run("Given circular dependency", func(t *testing.T) {
 		container := NewContainer(nil)
@@ -22,7 +39,7 @@ func TestContainer_Get(t *testing.T) {
 					employer: emp,
 				}, nil
 			},
-			Singleton: true,
+			Scope: Shared,
 		})
 		container.Override("employer", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
@@ -37,7 +54,7 @@ func TestContainer_Get(t *testing.T) {
 					company: company,
 				}, nil
 			},
-			Singleton: true,
+			Scope: Shared,
 		})
 		container.Override("management", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
@@ -52,19 +69,19 @@ func TestContainer_Get(t *testing.T) {
 					company: company,
 				}, nil
 			},
-			Singleton: true,
+			Scope: Shared,
 		})
 		container.Override("db", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
 				return struct{}{}, nil
 			},
-			Singleton: true,
+			Scope: Shared,
 		})
 		container.Override("holding", ServiceDefinition{
 			Provider: func() (interface{}, error) {
 				return struct{}{}, nil
 			},
-			Singleton: true,
+			Scope: Shared,
 		})
 		container.RegisterDecorator(func(s string, i interface{}) (interface{}, error) {
 			if s == "holding" {
@@ -99,6 +116,90 @@ func TestContainer_Get(t *testing.T) {
 		assert.NoError(t, dbErr)
 		assert.Empty(t, container.circularDeps.chain)
 	})
+
+	t.Run("Given scope", func(t *testing.T) {
+		newContainer := func(s Scope) *Container {
+			transactionID := 0
+			c := NewContainer(nil)
+			c.Override("transaction", ServiceDefinition{
+				Provider: func() (interface{}, error) {
+					transactionID++
+					return &transaction{id: transactionID}, nil
+				},
+				Scope: s,
+			})
+			c.Override("userRepo", ServiceDefinition{
+				Provider: func() (interface{}, error) {
+					return &userRepo{
+						transaction: c.MustGet("transaction").(*transaction),
+					}, nil
+				},
+				Scope: s,
+			})
+			c.Override("itemRepo", ServiceDefinition{
+				Provider: func() (interface{}, error) {
+					return &itemRepo{
+						transaction: c.MustGet("transaction").(*transaction),
+					}, nil
+				},
+				Scope: s,
+			})
+			c.Override("purchaseService", ServiceDefinition{
+				Provider: func() (interface{}, error) {
+					return &purchaseService{
+						userRepo: c.MustGet("userRepo").(*userRepo),
+						itemRepo: c.MustGet("itemRepo").(*itemRepo),
+					}, nil
+				},
+				Scope: s,
+			})
+			return c
+		}
+
+		assertEqualValues := func(t *testing.T, first interface{}, vals ...interface{}) {
+			for _, v := range vals {
+				assert.Equal(t, first, v, append([]interface{}{first}, vals...))
+			}
+		}
+
+		t.Run(Shared.String(), func(t *testing.T) {
+			c := newContainer(Shared)
+			ps1 := c.MustGet("purchaseService").(*purchaseService)
+			ps2 := c.MustGet("purchaseService").(*purchaseService)
+			assertEqualValues(
+				t,
+				1,
+				ps1.userRepo.transaction.id,
+				ps1.itemRepo.transaction.id,
+				ps2.userRepo.transaction.id,
+				ps2.itemRepo.transaction.id,
+			)
+		})
+		t.Run(FuncShared.String(), func(t *testing.T) {
+			c := newContainer(FuncShared)
+			for i := 1; i <= 3; i++ {
+				ps := c.MustGet("purchaseService").(*purchaseService)
+				assertEqualValues(
+					t,
+					i,
+					ps.userRepo.transaction.id,
+					ps.itemRepo.transaction.id,
+				)
+			}
+		})
+		t.Run(NonShared.String(), func(t *testing.T) {
+			c := newContainer(NonShared)
+			for i := 0; i < 3; i++ {
+				ps := c.MustGet("purchaseService").(*purchaseService)
+				ctID := i*2 + 1
+				assert.Equal(
+					t,
+					[]int{ctID, ctID + 1},
+					[]int{ps.userRepo.transaction.id, ps.itemRepo.transaction.id},
+				)
+			}
+		})
+	})
 }
 
 func TestContainer_RegisterDecorator(t *testing.T) {
@@ -108,80 +209,4 @@ func TestContainer_RegisterDecorator(t *testing.T) {
 		return i, nil
 	})
 	assert.Len(t, c.decorators, 1)
-}
-
-func TestContainer_GetSingletons(t *testing.T) {
-	t.Run("Shared non-singletons", func(t *testing.T) {
-		c := NewContainer(nil)
-		i := 0
-		c.Override("inc", ServiceDefinition{
-			Provider: func() (interface{}, error) {
-				i++
-				return i, nil
-			},
-			Singleton: false,
-		})
-		c.Override("sliceA", ServiceDefinition{
-			Provider: func() (interface{}, error) {
-				return []interface{}{c.MustGet("inc")}, nil
-			},
-			Singleton: false,
-		})
-		c.Override("sliceB", ServiceDefinition{
-			Provider: func() (interface{}, error) {
-				return []interface{}{c.MustGet("inc")}, nil
-			},
-			Singleton: false,
-		})
-		c.Override("metaslice", ServiceDefinition{
-			Provider: func() (interface{}, error) {
-				return append(
-					c.MustGet("sliceA").([]interface{}),
-					c.MustGet("sliceB").([]interface{})...,
-				), nil
-			},
-			Singleton:            false,
-			EnforceSingletonDeps: true,
-		})
-		c.Override("metaslice2", ServiceDefinition{
-			Provider: func() (interface{}, error) {
-				return append(
-					c.MustGet("sliceA").([]interface{}),
-					c.MustGet("sliceB").([]interface{})...,
-				), nil
-			},
-			Singleton:            false,
-			EnforceSingletonDeps: false,
-		})
-
-		slices, err := c.GetSingletons("sliceA", "sliceB")
-		assert.NoError(t, err)
-		assert.Equal(t, []interface{}{1}, slices["sliceA"])
-		assert.Equal(t, []interface{}{1}, slices["sliceB"])
-
-		assert.Equal(t, []interface{}{2}, c.MustGet("sliceA"))
-		assert.Equal(t, []interface{}{3}, c.MustGet("sliceB"))
-		assert.Equal(t, []interface{}{4}, c.MustGet("sliceA"))
-
-		slices, err = c.GetSingletons("sliceA", "sliceB")
-		assert.NoError(t, err)
-		assert.Equal(t, []interface{}{5}, slices["sliceA"])
-		assert.Equal(t, []interface{}{5}, slices["sliceB"])
-
-		// todo better tests for CollatedDeps
-		m := c.MustGet("metaslice").([]interface{})
-		assert.Equal(t, m[0], m[1])
-		m2 := c.MustGet("metaslice2").([]interface{})
-		assert.NotEqual(t, m2[0], m2[1])
-
-		assert.Nil(t, c.cacheGetSingletons)
-		assert.Nil(t, c.cacheGet)
-	})
-
-	t.Run("Given error", func(t *testing.T) {
-		c := NewContainer(nil)
-		s, err := c.GetSingletons("db")
-		assert.EqualError(t, err, "GetSingletons: service `db` does not exist")
-		assert.Nil(t, s)
-	})
 }

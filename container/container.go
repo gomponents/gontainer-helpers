@@ -5,70 +5,25 @@ import (
 	"sort"
 )
 
+type Scope uint
+
+const (
+	Shared     Scope = iota // The same instance is used each time you request it from this container
+	FuncShared              // The same instance is used only in the scope of the given service
+	NonShared               // New instance is created each time you request it from this container
+)
+
+func (s Scope) String() string {
+	return []string{
+		"Shared",
+		"FuncShared",
+		"NonShared",
+	}[s]
+}
+
 type ServiceDefinition struct {
 	Provider Provider
-
-	// Singleton configures life-cycle of the given dependency
-	// see https://docs.spring.io/spring-framework/docs/3.0.0.M3/reference/html/ch04s04.html
-	// see https://symfony.com/doc/current/service_container/shared.html
-	Singleton bool
-
-	// EnforceSingletonDeps extends the life-cycle of sub-dependencies.
-	// When in the scope the given service we must use the same dependency twice,
-	// the given dependency will be re-used even if it is marked as a non-singleton.
-	//
-	// Let's consider the following example:
-	// 1. PurchaseService depends on UserRepository and ItemRepository
-	// 2. UserRepository depends on SQLTransaction
-	// 3. ItemRepository depends on SQLTransaction
-	// 4. PurchaseService, UserRepository, ItemRepository and SQLTransaction are not singletons
-	//
-	// Our dependency graph will look like:
-	//
-	// PurchaseService
-	//               |-> UserRepository -> SQLTransaction (1)
-	//               |-> ItemRepository -> SQLTransaction (2)
-	//
-	// In scope of one service we have 2 repositories. Both of them depends on different SQL transactions,
-	// however we would like to achieve one transaction for entire scope of PurchaseService.
-	// The given flag gives an option to re-use non-singletons in scope of one service.
-	// When we enable it our dependency graph will look like:
-	//
-	// PurchaseService
-	//               |-> UserRepository -> SQLTransaction
-	//               |-> ItemRepository ↗
-	//
-	// Let's consider more complex scenario:
-	// 1. PurchaseService is wrapped by PurchaseServiceSQLTransactionAware
-	// 2. PurchaseServiceSQLTransactionAware depends on SQLTransaction
-	//
-	// PurchaseServiceSQLTransactionAware---------------------------------------|
-	//                                  |-> PurchaseService                     ↓
-	//                                                    |-> UserRepository -> SQLTransaction
-	//                                                    |-> ItemRepository ↗
-	//
-	// PurchaseServiceSQLTransactionAware has the same method signature as PurchaseService.
-	// However it does not perform any business logic, instead of that it calls method PurchaseService.DoAction
-	// and depending on result it rollbacks or commits performed SQL operations.
-	//
-	// type PurchaseServiceSQLTransactionAware struct {
-	//     purchaseService PurchaseService
-	//     transaction     *sql.Tx
-	// }
-	//
-	// func (p *PurchaseServiceSQLTransactionAware) DoAction() error {
-	//     if err := p.purchaseService.DoAction(); err != nil {
-	//         p.transaction.Rollback()
-	//         return err
-	//     }
-	//
-	//     p.transaction.Commit()
-	//     return nil
-	// }
-	//
-	// In the result your service is simpler. You do not need to handle your transaction in scope of business logic.
-	// Instead of that you can wrap your business logic by transaction.
-	EnforceSingletonDeps bool
+	Scope    Scope
 }
 
 type metaServiceDefinition struct {
@@ -78,11 +33,11 @@ type metaServiceDefinition struct {
 }
 
 type Container struct {
-	services           map[string]metaServiceDefinition
-	circularDeps       *circularDeps
-	decorators         []Decorator
-	cacheGetSingletons map[string]interface{}
-	cacheGet           map[string]interface{}
+	services      map[string]metaServiceDefinition
+	circularDeps  *circularDeps
+	decorators    []Decorator
+	cacheGet      map[string]interface{}
+	getFuncScoped map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -141,12 +96,6 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, newCircularDepError(deps)
 	}
 
-	if c.cacheGetSingletons != nil {
-		if s, ok := c.cacheGetSingletons[id]; ok {
-			return s, nil
-		}
-	}
-
 	if c.cacheGet != nil {
 		if s, ok := c.cacheGet[id]; ok {
 			return s, nil
@@ -163,7 +112,7 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 	}
 
 	// c.cacheGet == nil to avoid recreation empty map in consistent subdeps
-	if c.cacheGet == nil && serviceDef.definition.EnforceSingletonDeps {
+	if c.cacheGet == nil {
 		c.cacheGet = make(map[string]interface{})
 		defer func() {
 			c.cacheGet = nil
@@ -190,17 +139,13 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, decorateErr(err, "decorate")
 	}
 
-	if serviceDef.definition.Singleton {
+	if serviceDef.definition.Scope == Shared {
 		serviceDef.created = true
 		serviceDef.service = service
 		c.services[id] = serviceDef
 	}
 
-	if c.cacheGetSingletons != nil {
-		c.cacheGetSingletons[id] = service
-	}
-
-	if c.cacheGet != nil {
+	if serviceDef.definition.Scope == FuncShared {
 		c.cacheGet[id] = service
 	}
 
@@ -213,8 +158,8 @@ func (c *Container) Revoke(id string) error {
 		return fmt.Errorf("cannot revoke service `%s`, because it does not exist", id)
 	}
 
-	if !c.services[id].definition.Singleton {
-		return fmt.Errorf("cannot revoke service `%s`, because it is not a singleton", id)
+	if c.services[id].definition.Scope != Shared {
+		return fmt.Errorf("cannot revoke service `%s`, because it is not shared", id)
 	}
 
 	if !c.services[id].created {
@@ -250,58 +195,6 @@ func (c *Container) MustRemove(id string) {
 	if err := c.Remove(id); err != nil {
 		panic(err)
 	}
-}
-
-// GetSingletons works similar to ServiceDefinition.EnforceSingletonDeps in the scope of all required dependencies.
-//
-// c := NewContainer(nil)
-// c.Override("transaction", ServiceDefinition{
-//     Provider: func() (interface{}, error) {
-//         return c.MustGet("db").(*sql.DB).Begin()
-//     },
-//     Singleton: false,
-// })
-// c.Override("userRepo", ServiceDefinition{
-//     Provider: func() (interface{}, error) {
-//         return NewUserRepo(c.MustGet("transaction").(*sql.Tx)), nil
-//     },
-//     Singleton: false,
-// })
-// c.Override("itemRepo", ServiceDefinition{
-//     Provider: func() (interface{}, error) {
-//         return NewItemRepo(c.MustGet("transaction").(*sql.Tx)), nil
-//     },
-//     Singleton: false,
-// })
-// // userRepo and itemRepo use the same transaction
-// services, err := c.GetSingletons("userRepo", "itemRepo", "transaction")
-// // .. some logic
-// services["transaction"].(*sql.Tx).Commit()
-func (c *Container) GetSingletons(ids ...string) (map[string]interface{}, error) {
-	c.cacheGetSingletons = make(map[string]interface{})
-	defer func() {
-		c.cacheGetSingletons = nil
-	}()
-
-	r := make(map[string]interface{})
-
-	for _, id := range ids {
-		var err error
-		r[id], err = c.Get(id)
-		if err != nil {
-			return nil, fmt.Errorf("GetSingletons: %s", err.Error())
-		}
-	}
-
-	return r, nil
-}
-
-func (c *Container) MustGetSingletons(ids ...string) map[string]interface{} {
-	r, err := c.GetSingletons(ids...)
-	if err != nil {
-		panic(err)
-	}
-	return r
 }
 
 func (c *Container) MustGet(id string) interface{} {
