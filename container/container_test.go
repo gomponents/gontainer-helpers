@@ -175,8 +175,8 @@ func TestContainer_Get(t *testing.T) {
 				ps2.itemRepo.transaction.id,
 			)
 		})
-		t.Run(FuncShared.String(), func(t *testing.T) {
-			c := newContainer(FuncShared)
+		t.Run(NestedShared.String(), func(t *testing.T) {
+			c := newContainer(NestedShared)
 			for i := 1; i <= 3; i++ {
 				ps := c.MustGet("purchaseService").(*purchaseService)
 				assertEqualValues(

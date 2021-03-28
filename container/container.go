@@ -8,15 +8,15 @@ import (
 type Scope uint
 
 const (
-	Shared     Scope = iota // The same instance is used each time you request it from this container
-	FuncShared              // The same instance is used only in the scope of the given service
-	NonShared               // New instance is created each time you request it from this container
+	Shared       Scope = iota // The same instance is used each time you request it from this container
+	NestedShared              // The same instance is used only in the scope of the given service
+	NonShared                 // New instance is created each time you request it from this container
 )
 
 func (s Scope) String() string {
 	return []string{
 		"Shared",
-		"FuncShared",
+		"NestedShared",
 		"NonShared",
 	}[s]
 }
@@ -33,11 +33,10 @@ type metaServiceDefinition struct {
 }
 
 type Container struct {
-	services      map[string]metaServiceDefinition
-	circularDeps  *circularDeps
-	decorators    []Decorator
-	cacheGet      map[string]interface{}
-	getFuncScoped map[string]interface{}
+	services          map[string]metaServiceDefinition
+	circularDeps      *circularDeps
+	decorators        []Decorator
+	cacheNestedShared map[string]interface{}
 }
 
 func NewContainer(definitions map[string]ServiceDefinition) *Container {
@@ -96,8 +95,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, newCircularDepError(deps)
 	}
 
-	if c.cacheGet != nil {
-		if s, ok := c.cacheGet[id]; ok {
+	if c.cacheNestedShared != nil {
+		if s, ok := c.cacheNestedShared[id]; ok {
 			return s, nil
 		}
 	}
@@ -111,11 +110,11 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return serviceDef.service, nil
 	}
 
-	// c.cacheGet == nil to avoid recreation empty map in consistent subdeps
-	if c.cacheGet == nil {
-		c.cacheGet = make(map[string]interface{})
+	// c.cacheNestedShared == nil to avoid recreation empty map in consistent subdeps
+	if c.cacheNestedShared == nil {
+		c.cacheNestedShared = make(map[string]interface{})
 		defer func() {
-			c.cacheGet = nil
+			c.cacheNestedShared = nil
 		}()
 	}
 
@@ -145,8 +144,8 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		c.services[id] = serviceDef
 	}
 
-	if serviceDef.definition.Scope == FuncShared {
-		c.cacheGet[id] = service
+	if serviceDef.definition.Scope == NestedShared {
+		c.cacheNestedShared[id] = service
 	}
 
 	return service, nil
@@ -156,14 +155,6 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 func (c *Container) Revoke(id string) error {
 	if !c.Has(id) {
 		return fmt.Errorf("cannot revoke service `%s`, because it does not exist", id)
-	}
-
-	if c.services[id].definition.Scope != Shared {
-		return fmt.Errorf("cannot revoke service `%s`, because it is not shared", id)
-	}
-
-	if !c.services[id].created {
-		return fmt.Errorf("cannot revoke service `%s`, because it is not created yet", id)
 	}
 
 	cp := c.services[id]
