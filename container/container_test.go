@@ -39,7 +39,7 @@ func TestContainer_Get(t *testing.T) {
 					employer: emp,
 				}, nil
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 		container.Override("employer", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
@@ -54,7 +54,7 @@ func TestContainer_Get(t *testing.T) {
 					company: company,
 				}, nil
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 		container.Override("management", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
@@ -69,19 +69,19 @@ func TestContainer_Get(t *testing.T) {
 					company: company,
 				}, nil
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 		container.Override("db", ServiceDefinition{
 			Provider: func() (i interface{}, e error) {
 				return struct{}{}, nil
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 		container.Override("holding", ServiceDefinition{
 			Provider: func() (interface{}, error) {
 				return struct{}{}, nil
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 		container.RegisterDecorator(func(s string, i interface{}) (interface{}, error) {
 			if s == "holding" {
@@ -162,8 +162,8 @@ func TestContainer_Get(t *testing.T) {
 			}
 		}
 
-		t.Run(Shared.String(), func(t *testing.T) {
-			c := newContainer(Shared)
+		t.Run(ScopeShared.String(), func(t *testing.T) {
+			c := newContainer(ScopeShared)
 			ps1 := c.MustGet("purchaseService").(*purchaseService)
 			ps2 := c.MustGet("purchaseService").(*purchaseService)
 			assertEqualValues(
@@ -175,8 +175,8 @@ func TestContainer_Get(t *testing.T) {
 				ps2.itemRepo.transaction.id,
 			)
 		})
-		t.Run(NestedShared.String(), func(t *testing.T) {
-			c := newContainer(NestedShared)
+		t.Run(ScopeNestedShared.String(), func(t *testing.T) {
+			c := newContainer(ScopeNestedShared)
 			for i := 1; i <= 3; i++ {
 				ps := c.MustGet("purchaseService").(*purchaseService)
 				assertEqualValues(
@@ -187,8 +187,8 @@ func TestContainer_Get(t *testing.T) {
 				)
 			}
 		})
-		t.Run(NonShared.String(), func(t *testing.T) {
-			c := newContainer(NonShared)
+		t.Run(ScopeNonShared.String(), func(t *testing.T) {
+			c := newContainer(ScopeNonShared)
 			for i := 0; i < 3; i++ {
 				ps := c.MustGet("purchaseService").(*purchaseService)
 				ctID := i*2 + 1

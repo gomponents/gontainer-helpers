@@ -29,7 +29,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 		}
@@ -48,7 +48,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 		}
@@ -69,7 +69,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 		}
@@ -87,7 +87,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 			g.Go(func() {
@@ -108,7 +108,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 			g.Go(func() {
@@ -142,7 +142,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 		}
@@ -160,7 +160,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 			g.Go(func() {
@@ -196,7 +196,7 @@ func TestAtomicContainer_Concurrency(t *testing.T) {
 					Provider: func() (interface{}, error) {
 						return nil, nil
 					},
-					Scope: Shared,
+					Scope: ScopeShared,
 				})
 			})
 
@@ -229,13 +229,13 @@ func TestAtomicContainer_NestedLock(t *testing.T) {
 			Provider: func() (interface{}, error) {
 				return struct{}{}, nil
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 		c.Override("alias", ServiceDefinition{
 			Provider: func() (interface{}, error) {
 				return c.Get("foo")
 			},
-			Scope: Shared,
+			Scope: ScopeShared,
 		})
 	}
 

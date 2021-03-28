@@ -8,16 +8,16 @@ import (
 type Scope uint
 
 const (
-	Shared       Scope = iota // The same instance is used each time you request it from this container
-	NestedShared              // The same instance is used only in the scope of the given service
-	NonShared                 // New instance is created each time you request it from this container
+	ScopeShared       Scope = iota // The same instance is used each time you request it from this container
+	ScopeNestedShared              // The same instance is used only in the scope of the given service
+	ScopeNonShared                 // New instance is created each time you request it from this container
 )
 
 func (s Scope) String() string {
 	return []string{
-		"Shared",
-		"NestedShared",
-		"NonShared",
+		"ScopeShared",
+		"ScopeNestedShared",
+		"ScopeNonShared",
 	}[s]
 }
 
@@ -138,13 +138,13 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 		return nil, decorateErr(err, "decorate")
 	}
 
-	if serviceDef.definition.Scope == Shared {
+	if serviceDef.definition.Scope == ScopeShared {
 		serviceDef.created = true
 		serviceDef.service = service
 		c.services[id] = serviceDef
 	}
 
-	if serviceDef.definition.Scope == NestedShared {
+	if serviceDef.definition.Scope == ScopeNestedShared {
 		c.cacheNestedShared[id] = service
 	}
 
