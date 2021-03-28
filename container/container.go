@@ -151,10 +151,14 @@ func (c *Container) Get(id string) (service interface{}, err error) {
 	return service, nil
 }
 
+const (
+	errMsgServiceDoesNotExist = "cannot %s service `%s`, because it does not exist"
+)
+
 // Revoke remove a cached copy of the service
 func (c *Container) Revoke(id string) error {
 	if !c.Has(id) {
-		return fmt.Errorf("cannot revoke service `%s`, because it does not exist", id)
+		return fmt.Errorf(errMsgServiceDoesNotExist, "revoke", id)
 	}
 
 	cp := c.services[id]
@@ -174,7 +178,7 @@ func (c *Container) MustRevoke(id string) {
 // Remove removes service completely
 func (c *Container) Remove(id string) error {
 	if !c.Has(id) {
-		return fmt.Errorf("cannot remove service `%s`, because it does not exist", id)
+		return fmt.Errorf(errMsgServiceDoesNotExist, "remove", id)
 	}
 
 	delete(c.services, id)
