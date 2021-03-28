@@ -174,7 +174,7 @@ func (c *Container) MustRevoke(id string) {
 // Remove removes service completely
 func (c *Container) Remove(id string) error {
 	if !c.Has(id) {
-		return fmt.Errorf("cannot remove service `%s`, becaus it does not exist", id)
+		return fmt.Errorf("cannot remove service `%s`, because it does not exist", id)
 	}
 
 	delete(c.services, id)
